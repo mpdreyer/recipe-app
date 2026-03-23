@@ -611,7 +611,7 @@ def save_recipe_to_file(recipe: dict) -> bool:
 
 
 def show_add_recipe_page():
-    """Lägg till recept via screenshot — Claude Vision läser texten."""
+    """Lägg till recept via screenshot eller inklistrad text."""
     import base64 as _b64, json as _json, re as _re
 
     st.markdown("""
@@ -621,148 +621,173 @@ def show_add_recipe_page():
       </div>
       <div style='font-size:.9rem;color:#6B5B45;margin-top:.4rem;
                   letter-spacing:1px;text-transform:uppercase'>
-        Ta en screenshot — Claude läser receptet åt dig
+        Från Instagram direkt till receptsamlingen
       </div>
     </div>""", unsafe_allow_html=True)
 
-    st.markdown("""
-    <div style='background:#FFF8EE;border-left:4px solid #D4A853;
-                padding:1rem 1.2rem;border-radius:8px;margin-bottom:1.5rem'>
-    <b>📸 Så här gör du på iPhone:</b><br><br>
-    1️⃣ &nbsp;Öppna receptet i Instagram (eller valfri källa)<br>
-    2️⃣ &nbsp;Ta screenshot &nbsp;
-      <span style='background:#e0e0e0;padding:.1rem .4rem;border-radius:4px;
-                   font-size:.85rem'>Sidoknapp + Volym upp</span><br>
-    3️⃣ &nbsp;Ladda upp bilden nedan — Claude läser receptet automatiskt ✨
-    </div>
-    """, unsafe_allow_html=True)
+    tab_img, tab_txt = st.tabs(["📸 Screenshot", "📋 Klistra in text"])
 
-    uploaded = st.file_uploader(
-        "Välj screenshot eller foto av receptet",
-        type=["jpg", "jpeg", "png", "webp"],
-        help="Funkar med screenshot från Instagram, TikTok, webbsidor, kokböcker — vad som helst"
-    )
+    # ── ALTERNATIV 1: Screenshot ───────────────────────────────────────────────
+    with tab_img:
+        st.markdown("""
+        <div style='background:#FFF8EE;border-left:4px solid #D4A853;
+                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1.2rem;font-size:.9rem'>
+        <b>iPhone:</b> Sidoknapp + Volym upp → ladda upp bilden nedan
+        </div>""", unsafe_allow_html=True)
 
-    if uploaded:
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.image(uploaded, use_container_width=True)
+        uploaded = st.file_uploader(
+            "Välj screenshot eller foto av receptet",
+            type=["jpg", "jpeg", "png", "webp"],
+            key="img_uploader"
+        )
 
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            go = st.button("✨ Extrahera recept", use_container_width=True, type="primary")
+        if uploaded:
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.image(uploaded, use_container_width=True)
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                go_img = st.button("✨ Extrahera recept", use_container_width=True,
+                                   type="primary", key="btn_img")
 
-        if go:
-            client = get_claude_client()
-            if not client:
-                st.error("Claude API-nyckel saknas — kontrollera Streamlit secrets.")
-                return
+            if go_img:
+                client = get_claude_client()
+                if not client:
+                    st.error("Claude API-nyckel saknas.")
+                    return
 
-            uploaded.seek(0)
-            img_b64 = _b64.standard_b64encode(uploaded.read()).decode()
-            media_type = uploaded.type or "image/jpeg"
+                uploaded.seek(0)
+                img_b64 = _b64.standard_b64encode(uploaded.read()).decode()
+                media_type = uploaded.type or "image/jpeg"
 
-            SYSTEM = (
-                "Du är ett recept-OCR-system. Analysera bilden och extrahera receptet. "
-                "Returnera BARA giltig JSON utan backticks.\n\n"
-                "Om det finns ett recept:\n"
-                '{"is_recipe":true,"title":"...","description":"...","creator":"",'
-                '"ingredients":["..."],"instructions":"...","category":"Varmratt/Forratt/'
-                'Dessert/Bakverk/Snacks/Frukost/Tillbehor/Sas/Dryck","cuisine":"Svensk/'
-                'Italiensk/Asiatisk/Franskt/Ovrigt","difficulty":"Latt/Medel/Avancerad",'
-                '"servings":"...","prep_time":"...","cook_time":"...","tags":["..."]}\n\n'
-                'Om det INTE finns ett recept: {"is_recipe":false}'
-            )
+                SYSTEM = (
+                    "Du är ett recept-OCR-system. Extrahera receptet från bilden. "
+                    "Returnera BARA giltig JSON utan backticks.\n"
+                    'Om recept: {"is_recipe":true,"title":"...","description":"...", '
+                    '"creator":"","ingredients":["..."],"instructions":"...",'
+                    '"category":"Varmrätt/Förrätt/Dessert/Bakverk/Snacks/Frukost/Tillbehör/Sås/Dryck",'
+                    '"cuisine":"Svensk/Italiensk/Asiatisk/Franskt/Övrigt",'
+                    '"difficulty":"Lätt/Medel/Avancerad","servings":"...","prep_time":"...","cook_time":"...","tags":["..."]}\n'
+                    'Om inget recept: {"is_recipe":false}'
+                )
 
-            with st.spinner("Claude Vision läser receptet ur bilden..."):
-                try:
-                    resp = client.messages.create(
-                        model="claude-opus-4-6",
-                        max_tokens=1500,
-                        system=SYSTEM,
-                        messages=[{
-                            "role": "user",
-                            "content": [
+                with st.spinner("Claude Vision läser bilden..."):
+                    try:
+                        resp = client.messages.create(
+                            model="claude-opus-4-6",
+                            max_tokens=1500,
+                            system=SYSTEM,
+                            messages=[{"role": "user", "content": [
                                 {"type": "image",
                                  "source": {"type": "base64",
                                             "media_type": media_type,
                                             "data": img_b64}},
-                                {"type": "text",
-                                 "text": "Extrahera receptet. Returnera bara JSON."}
-                            ]
-                        }]
-                    )
-                    raw = resp.content[0].text.strip()
-                    raw = _re.sub(r'^```(json)?', '', raw).strip().rstrip('`').strip()
-                    recipe = _json.loads(raw)
-                except Exception as e:
-                    st.error(f"Något gick fel: {e}")
+                                {"type": "text", "text": "Extrahera receptet. Bara JSON."}
+                            ]}]
+                        )
+                        raw = _re.sub(r'^```(json)?', '',
+                                      resp.content[0].text.strip()).strip().rstrip('`').strip()
+                        recipe = _json.loads(raw)
+                    except Exception as e:
+                        st.error(f"Fel: {e}")
+                        return
+
+                if not recipe.get("is_recipe"):
+                    st.warning("Hittade inget recept i bilden — prova en tydligare screenshot.")
                     return
 
-            if not recipe.get("is_recipe"):
-                st.warning("Hittade inget recept i bilden — prova en tydligare screenshot.")
+                _show_recipe_preview_and_save(recipe, "screenshot_import")
+
+    # ── ALTERNATIV 2: Klistra in text ──────────────────────────────────────────
+    with tab_txt:
+        st.markdown("""
+        <div style='background:#FFF8EE;border-left:4px solid #D4A853;
+                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1.2rem;font-size:.9rem'>
+        <b>Instagram:</b> Håll inne på texten → Markera allt → Kopiera → klistra in nedan
+        </div>""", unsafe_allow_html=True)
+
+        caption = st.text_area(
+            "Recepttext:", height=200,
+            placeholder="Klistra in recepttexten från Instagram här...",
+            key="txt_caption"
+        )
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            creator = st.text_input("@kreatör (valfritt):",
+                                    placeholder="t.ex. the_pastaqueen", key="txt_creator")
+        with col_b:
+            ig_url = st.text_input("Instagram-länk (valfritt):",
+                                   placeholder="https://instagram.com/p/...", key="txt_url")
+
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            go_txt = st.button("✨ Extrahera recept", use_container_width=True,
+                               type="primary", key="btn_txt", disabled=not bool(caption))
+
+        if go_txt and caption:
+            url = ig_url.strip().split("?")[0] if ig_url else ""
+            with st.spinner("Claude extraherar receptet..."):
+                recipe = extract_recipe_from_caption(caption, url, creator)
+            if not recipe or not recipe.get("is_recipe"):
+                st.warning("Hittade inget recept i texten.")
                 return
+            _show_recipe_preview_and_save(recipe, "text_import")
 
-            st.markdown("---")
-            st.success(f"Hittade: **{recipe.get('title','?')}**")
 
-            with st.expander("Förhandsgranska", expanded=True):
-                c1, c2 = st.columns(2)
-                with c1:
-                    if recipe.get("creator"):
-                        st.markdown(f"**@kreatör:** {recipe['creator']}")
-                    st.markdown(f"**Kategori:** {recipe.get('category','?')} · {recipe.get('cuisine','?')}")
-                    st.markdown(f"**Svårighet:** {recipe.get('difficulty','?')}")
-                    st.markdown(f"**Tid:** {recipe.get('prep_time') or '?'} + {recipe.get('cook_time') or '?'}")
-                    st.markdown(f"**Portioner:** {recipe.get('servings') or '?'}")
-                with c2:
-                    ings = recipe.get("ingredients", [])
-                    st.markdown(f"**{len(ings)} ingredienser:**")
-                    for ing in ings[:8]:
-                        st.markdown(f"• {ing}")
-                    if len(ings) > 8:
-                        st.markdown(f"*…och {len(ings)-8} till*")
-                if recipe.get("description"):
-                    st.markdown(f"*{recipe['description']}*")
-
-            jenny = st.checkbox("Jennys val 👩", value=True)
-            recipe["jenny_pick"] = jenny
-            recipe["added_by"]  = "screenshot_import"
-            recipe["is_recipe"] = True
-            recipe.setdefault("url", "")
-
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                if st.button("💾 Spara till samlingen", use_container_width=True, type="primary"):
-                    try:
-                        import sys as _sys
-                        _sys.path.insert(0, ".")
-                        from nutrition_engine import calculate_nutrition, NUTRITION_FALLBACKS
-                        nut = calculate_nutrition(recipe)
-                        recipe["nutrition"] = nut if nut else {
-                            **NUTRITION_FALLBACKS.get(
-                                recipe.get("category", "Varmrätt"),
-                                NUTRITION_FALLBACKS.get("Varmrätt", {})),
-                            "calculated": False
-                        }
-                    except Exception:
-                        pass
-                    saved = save_recipe_to_file(recipe)
-                    if saved:
-                        st.success(f"🎉 **{recipe['title']}** sparad!")
-                        st.balloons()
-                    else:
-                        st.warning("Receptet finns redan i samlingen.")
+def _show_recipe_preview_and_save(recipe: dict, source: str):
+    """Gemensam förhandsgranskning och spara-knapp."""
+    import json as _json
 
     st.markdown("---")
-    with st.expander("💡 Fungerar med mer än Instagram"):
-        st.markdown(
-            "- 📸 **Instagram** — screenshot av inlägget\n"
-            "- 📺 **TikTok** — screenshot med recepttext\n"
-            "- 🌐 **Webbsidor** — screenshot av vilket recept som helst\n"
-            "- 📖 **Kokböcker** — foto av sidan\n"
-            "- 📝 **Handskrivna recept** — foto funkar också!"
-        )
+    st.success(f"✅ **{recipe.get('title', '?')}** hittad!")
+
+    with st.expander("Förhandsgranska", expanded=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            if recipe.get("creator"):
+                st.markdown(f"**@kreatör:** {recipe['creator']}")
+            st.markdown(f"**Kategori:** {recipe.get('category','?')} · {recipe.get('cuisine','?')}")
+            st.markdown(f"**Svårighet:** {recipe.get('difficulty','?')}")
+            st.markdown(f"**Tid:** {recipe.get('prep_time') or '?'} + {recipe.get('cook_time') or '?'}")
+            st.markdown(f"**Portioner:** {recipe.get('servings') or '?'}")
+        with c2:
+            ings = recipe.get("ingredients", [])
+            st.markdown(f"**{len(ings)} ingredienser:**")
+            for ing in ings[:8]:
+                st.markdown(f"• {ing}")
+            if len(ings) > 8:
+                st.markdown(f"*…och {len(ings)-8} till*")
+        if recipe.get("description"):
+            st.caption(recipe["description"])
+
+    jenny = st.checkbox("Jennys val 👩", value=True, key=f"jenny_{source}")
+    recipe["jenny_pick"] = jenny
+    recipe["added_by"]   = source
+    recipe["is_recipe"]  = True
+    recipe.setdefault("url", "")
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("💾 Spara till samlingen", use_container_width=True,
+                     type="primary", key=f"save_{source}"):
+            try:
+                import sys as _sys
+                _sys.path.insert(0, ".")
+                from nutrition_engine import calculate_nutrition, NUTRITION_FALLBACKS
+                nut = calculate_nutrition(recipe)
+                recipe["nutrition"] = nut if nut else {
+                    **NUTRITION_FALLBACKS.get(recipe.get("category", "Varmrätt"),
+                                              NUTRITION_FALLBACKS.get("Varmrätt", {})),
+                    "calculated": False
+                }
+            except Exception:
+                pass
+            if save_recipe_to_file(recipe):
+                st.success(f"🎉 **{recipe['title']}** sparad!")
+                st.balloons()
+            else:
+                st.warning("Receptet finns redan i samlingen.")
 
 
 def main():
