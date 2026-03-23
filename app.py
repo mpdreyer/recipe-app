@@ -496,197 +496,6 @@ def show_detail(recipe: dict, all_recipes: list):
         st.rerun()
 
 # ── Main ──────────────────────────────────────────────────────────────────────
-def main():
-    all_recipes = load_recipes()
-
-    # ── Hantera ?ig_url= från iOS Shortcut ───────────────────────────────────
-    try:
-        ig_url_param = st.query_params.get("ig_url", "")
-    except Exception:
-        ig_url_param = ""
-
-    # ── Tab-navigation ────────────────────────────────────────────────────────
-    tab_recipe, tab_add = st.tabs(["🍳 Receptsamlingen", "📲 Lägg till recept"])
-
-    with tab_add:
-        # Om URL kom via iOS Shortcut — sätt den i session_state
-        if ig_url_param and "ig_url_input" not in st.session_state:
-            st.session_state["ig_url_input"] = ig_url_param
-        show_add_recipe_page()
-
-    with tab_recipe:
-        # Ladda om recept (kan ha sparats nyss)
-        all_recipes = load_recipes()
-
-    with tab_recipe:
-        # ── Sidebar ───────────────────────────────────────────────────────────────
-        with st.sidebar:
-            st.markdown('<div style="padding:1rem 0 .5rem;font-family:Playfair Display,serif;font-size:1.5rem;color:#D4A853">🍳 Filter</div>',
-                       unsafe_allow_html=True)
-            search = st.text_input("", placeholder="Recept, ingrediens, @kreatör…", label_visibility="collapsed")
-
-            all_cats = sorted(set(r.get("category","") for r in all_recipes if r.get("category")))
-            cats = st.multiselect("Kategorier", ["Alla"] + all_cats, default=["Alla"])
-
-            all_cuis = sorted(set(r.get("cuisine","") for r in all_recipes if r.get("cuisine")))
-            cuisines = st.multiselect("Kök", ["Alla"] + all_cuis, default=["Alla"])
-
-            diffs = st.multiselect("Svårighet", ["Alla","Lätt","Medel","Avancerad"], default=["Alla"])
-
-            max_time = st.slider("Max tillagningstid (minuter)", 10, 120, 120, 5,
-                                help="Prep + tillagning totalt")
-
-            sort_by = st.selectbox("Sortera", ["Standard","A-Ö","Svårighet: Lätt först","Svårighet: Avancerad först","Kortast tid"])
-
-            jenny_only = st.toggle("👩 Jennys val", value=False, help="Visa bara recept från Jennys sparade samlingar")
-
-            st.markdown("---")
-            st.markdown(f'<div style="color:#A89070;font-size:.78rem;line-height:1.6">'
-                       f'📖 {len(all_recipes)} recept<br>'
-                       f'👥 {len(set(r.get("creator","") for r in all_recipes))} kreatörer<br>'
-                       f'🌍 {len(set(r.get("cuisine","") for r in all_recipes))} olika kök<br><br>'
-                       f'<em>Scrapad från @mpdreyer\'s Instagram</em></div>',
-                       unsafe_allow_html=True)
-
-            # Popular creators
-            st.markdown('<div style="color:#D4A853;font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;margin-top:1rem">Populära kreatörer</div>',
-                       unsafe_allow_html=True)
-            creators_count = {}
-            for r in all_recipes:
-                c = r.get('creator','')
-                if c: creators_count[c] = creators_count.get(c,0)+1
-            top_creators = sorted(creators_count.items(), key=lambda x:-x[1])[:8]
-            for creator, count in top_creators:
-                st.markdown(f'<div style="color:#A89070;font-size:.75rem;padding:.1rem 0">@{creator} <span style="color:#6B7C5A">({count})</span></div>',
-                           unsafe_allow_html=True)
-
-        # ── Header ─────────────────────────────────────────────────────────────────
-        st.markdown("""
-        <div class="site-header">
-          <h1>Mattias Receptsamling</h1>
-          <div class="tagline">Sparade Instagram-recept · @mpdreyer · Mat-samlingen</div>
-        </div>""", unsafe_allow_html=True)
-
-        # ── Detail view ─────────────────────────────────────────────────────────────
-        if st.session_state.get("sel"):
-            show_detail(st.session_state.sel, all_recipes)
-            return
-
-        # ── Filter & Sort ───────────────────────────────────────────────────────────
-        shown = filter_recipes(all_recipes, search, cats, cuisines, diffs, max_time)
-        if jenny_only:
-            shown = [r for r in shown if r.get('jenny_pick')]
-
-        diff_order = {"Lätt":0,"Medel":1,"Avancerad":2}
-        def total_time(r):
-            def p(t):
-                if not t: return 999
-                n = re.search(r'\d+', str(t))
-                return int(n.group()) if n else 999
-            return p(r.get('prep_time',0)) + p(r.get('cook_time',0))
-
-        if sort_by == "A-Ö":
-            shown = sorted(shown, key=lambda r: r.get('title',''))
-        elif sort_by == "Svårighet: Lätt först":
-            shown = sorted(shown, key=lambda r: diff_order.get(r.get('difficulty','Medel'),1))
-        elif sort_by == "Svårighet: Avancerad först":
-            shown = sorted(shown, key=lambda r: -diff_order.get(r.get('difficulty','Medel'),1))
-        elif sort_by == "Kortast tid":
-            shown = sorted(shown, key=total_time)
-
-        # ── Stats ───────────────────────────────────────────────────────────────────
-        n_cats = len(set(r.get("category","") for r in shown))
-        n_cre = len(set(r.get("creator","") for r in shown))
-        n_easy = sum(1 for r in shown if r.get("difficulty") == "Lätt")
-        n_quick = sum(1 for r in shown if total_time(r) <= 30)
-        st.markdown(f"""
-        <div class="stats-row">
-          <div class="stat"><span class="stat-n">{len(shown)}</span><span class="stat-l">Recept</span></div>
-          <div class="stat"><span class="stat-n">{n_cats}</span><span class="stat-l">Kategorier</span></div>
-          <div class="stat"><span class="stat-n">{n_cre}</span><span class="stat-l">Kreatörer</span></div>
-          <div class="stat"><span class="stat-n">{n_easy}</span><span class="stat-l">Enkla</span></div>
-          <div class="stat"><span class="stat-n">{n_quick}</span><span class="stat-l">Under 30 min</span></div>
-        </div>""", unsafe_allow_html=True)
-
-        if not shown:
-            st.info("Inga recept matchar dina filter. Prova att ändra sökning eller filter.")
-            return
-
-        # ── Featured recipe ─────────────────────────────────────────────────────────
-        if not search and "Alla" in (cats or ["Alla"]):
-            featured = shown[hash(str(len(shown))) % len(shown)]
-            feat_cat = featured.get('category','')
-            feat_cui = featured.get('cuisine','')
-            feat_cat_line = " · ".join(filter(None,[feat_cat,feat_cui]))
-
-            with st.expander("⭐ Utvalt recept", expanded=True):
-                fc1, fc2 = st.columns([1, 1.5])
-                with fc1:
-                    with st.spinner("Ritar illustration…"):
-                        feat_svg = get_illustration(featured)
-                    feat_uri = svg_to_data_uri(feat_svg)
-                    st.markdown(f'<img src="{feat_uri}" style="width:100%;border-radius:12px"/>',
-                               unsafe_allow_html=True)
-                with fc2:
-                    st.markdown(f'<div style="font-size:.65rem;color:#B85C2A;letter-spacing:2px;text-transform:uppercase">{feat_cat_line}</div>', unsafe_allow_html=True)
-                    st.markdown(f'<div style="font-family:Playfair Display,serif;font-size:1.8rem;color:#2C1A0E;line-height:1.2;margin:.3rem 0">{featured.get("title","")}</div>', unsafe_allow_html=True)
-                    st.markdown(f'<div style="color:#7A6252;font-size:.88rem;margin-bottom:.8rem">{featured.get("description","")}</div>', unsafe_allow_html=True)
-                    m = []
-                    if featured.get("prep_time"): m.append(f"⏱ {featured['prep_time']}")
-                    if featured.get("cook_time"): m.append(f"🔥 {featured['cook_time']}")
-                    if featured.get("servings"): m.append(f"👥 {featured['servings']}")
-                    if featured.get("difficulty"): m.append(f"📊 {featured['difficulty']}")
-                    st.markdown(" &nbsp;·&nbsp; ".join(f"<small>{x}</small>" for x in m), unsafe_allow_html=True)
-                    if st.button("Visa fullständigt recept →", key="featured_btn", type="primary"):
-                        st.session_state.sel = featured
-                        st.rerun()
-
-        # ── Recipe grid — illustrationer genereras vid visning ────────────────────
-        # Visa max 12 i taget för att hålla laddningstiden nere
-        page_size = 12
-        page = st.session_state.get("page", 0)
-        page_recipes = shown[page*page_size:(page+1)*page_size]
-        total_pages = (len(shown) - 1) // page_size + 1
-
-        cols = st.columns(3, gap="medium")
-        for i, recipe in enumerate(page_recipes):
-            with cols[i % 3]:
-                # Fallback-SVG direkt — generera bara vid klick
-                fallback = _fallback_svg(recipe.get('title',''), recipe.get('category',''))
-                st.markdown(card_html(recipe, fallback), unsafe_allow_html=True)
-                if st.button("Visa recept", key=f"btn_{page}_{i}_{recipe.get('url','')[-8:]}",
-                            use_container_width=True):
-                    st.session_state.sel = recipe
-                    st.rerun()
-
-        # Pagination
-        if total_pages > 1:
-            st.markdown("---")
-            pcols = st.columns([1,3,1])
-            with pcols[0]:
-                if page > 0 and st.button("← Föregående"):
-                    st.session_state.page = page - 1
-                    st.rerun()
-            with pcols[1]:
-                st.markdown(f'<div style="text-align:center;color:#9B7B5B;font-size:.85rem">Sida {page+1} av {total_pages} &nbsp;·&nbsp; {len(shown)} recept totalt</div>',
-                           unsafe_allow_html=True)
-            with pcols[2]:
-                if page < total_pages - 1 and st.button("Nästa →"):
-                    st.session_state.page = page + 1
-                    st.rerun()
-
-if __name__ == "__main__":
-    if "sel" not in st.session_state:
-        st.session_state.sel = None
-    if "page" not in st.session_state:
-        st.session_state.page = 0
-    main()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# LÄGG TILL RECEPT — Instagram URL → Claude extraktion → sparas i JSON
-# ─────────────────────────────────────────────────────────────────────────────
-
 def fetch_instagram_caption(url: str) -> tuple[str, str]:
     """Hämta caption + creator från Instagram-post via og:description."""
     import urllib.request, urllib.error, html as html_mod
@@ -917,3 +726,188 @@ Shortcut-namn: Lägg till recept
 """)
 
 
+def main():
+    all_recipes = load_recipes()
+
+    # ── Hantera ?ig_url= från iOS Shortcut ───────────────────────────────────
+    try:
+        ig_url_param = st.query_params.get("ig_url", "")
+    except Exception:
+        ig_url_param = ""
+    if ig_url_param and "ig_url_input" not in st.session_state:
+        st.session_state["ig_url_input"] = ig_url_param
+
+    # ── Tab-navigation ────────────────────────────────────────────────────────
+    tab_recipe, tab_add = st.tabs(["🍳 Receptsamlingen", "📲 Lägg till recept"])
+
+    with tab_add:
+        show_add_recipe_page()
+
+    with tab_recipe:
+        # ── Sidebar ───────────────────────────────────────────────────────────────
+        with st.sidebar:
+            st.markdown('<div style="padding:1rem 0 .5rem;font-family:Playfair Display,serif;font-size:1.5rem;color:#D4A853">🍳 Filter</div>',
+                       unsafe_allow_html=True)
+            search = st.text_input("", placeholder="Recept, ingrediens, @kreatör…", label_visibility="collapsed")
+
+            all_cats = sorted(set(r.get("category","") for r in all_recipes if r.get("category")))
+            cats = st.multiselect("Kategorier", ["Alla"] + all_cats, default=["Alla"])
+
+            all_cuis = sorted(set(r.get("cuisine","") for r in all_recipes if r.get("cuisine")))
+            cuisines = st.multiselect("Kök", ["Alla"] + all_cuis, default=["Alla"])
+
+            diffs = st.multiselect("Svårighet", ["Alla","Lätt","Medel","Avancerad"], default=["Alla"])
+
+            max_time = st.slider("Max tillagningstid (minuter)", 10, 120, 120, 5,
+                                help="Prep + tillagning totalt")
+
+            sort_by = st.selectbox("Sortera", ["Standard","A-Ö","Svårighet: Lätt först","Svårighet: Avancerad först","Kortast tid"])
+
+            jenny_only = st.toggle("👩 Jennys val", value=False, help="Visa bara recept från Jennys sparade samlingar")
+
+            st.markdown("---")
+            st.markdown(f'<div style="color:#A89070;font-size:.78rem;line-height:1.6">'
+                       f'📖 {len(all_recipes)} recept<br>'
+                       f'👥 {len(set(r.get("creator","") for r in all_recipes))} kreatörer<br>'
+                       f'🌍 {len(set(r.get("cuisine","") for r in all_recipes))} olika kök<br><br>'
+                       f'<em>Scrapad från @mpdreyer\'s Instagram</em></div>',
+                       unsafe_allow_html=True)
+
+            # Popular creators
+            st.markdown('<div style="color:#D4A853;font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;margin-top:1rem">Populära kreatörer</div>',
+                       unsafe_allow_html=True)
+            creators_count = {}
+            for r in all_recipes:
+                c = r.get('creator','')
+                if c: creators_count[c] = creators_count.get(c,0)+1
+            top_creators = sorted(creators_count.items(), key=lambda x:-x[1])[:8]
+            for creator, count in top_creators:
+                st.markdown(f'<div style="color:#A89070;font-size:.75rem;padding:.1rem 0">@{creator} <span style="color:#6B7C5A">({count})</span></div>',
+                           unsafe_allow_html=True)
+
+        # ── Header ─────────────────────────────────────────────────────────────────
+        st.markdown("""
+        <div class="site-header">
+          <h1>Mattias Receptsamling</h1>
+          <div class="tagline">Sparade Instagram-recept · @mpdreyer · Mat-samlingen</div>
+        </div>""", unsafe_allow_html=True)
+
+        # ── Detail view ─────────────────────────────────────────────────────────────
+        if st.session_state.get("sel"):
+            show_detail(st.session_state.sel, all_recipes)
+            return
+
+        # ── Filter & Sort ───────────────────────────────────────────────────────────
+        shown = filter_recipes(all_recipes, search, cats, cuisines, diffs, max_time)
+        if jenny_only:
+            shown = [r for r in shown if r.get('jenny_pick')]
+
+        diff_order = {"Lätt":0,"Medel":1,"Avancerad":2}
+        def total_time(r):
+            def p(t):
+                if not t: return 999
+                n = re.search(r'\d+', str(t))
+                return int(n.group()) if n else 999
+            return p(r.get('prep_time',0)) + p(r.get('cook_time',0))
+
+        if sort_by == "A-Ö":
+            shown = sorted(shown, key=lambda r: r.get('title',''))
+        elif sort_by == "Svårighet: Lätt först":
+            shown = sorted(shown, key=lambda r: diff_order.get(r.get('difficulty','Medel'),1))
+        elif sort_by == "Svårighet: Avancerad först":
+            shown = sorted(shown, key=lambda r: -diff_order.get(r.get('difficulty','Medel'),1))
+        elif sort_by == "Kortast tid":
+            shown = sorted(shown, key=total_time)
+
+        # ── Stats ───────────────────────────────────────────────────────────────────
+        n_cats = len(set(r.get("category","") for r in shown))
+        n_cre = len(set(r.get("creator","") for r in shown))
+        n_easy = sum(1 for r in shown if r.get("difficulty") == "Lätt")
+        n_quick = sum(1 for r in shown if total_time(r) <= 30)
+        st.markdown(f"""
+        <div class="stats-row">
+          <div class="stat"><span class="stat-n">{len(shown)}</span><span class="stat-l">Recept</span></div>
+          <div class="stat"><span class="stat-n">{n_cats}</span><span class="stat-l">Kategorier</span></div>
+          <div class="stat"><span class="stat-n">{n_cre}</span><span class="stat-l">Kreatörer</span></div>
+          <div class="stat"><span class="stat-n">{n_easy}</span><span class="stat-l">Enkla</span></div>
+          <div class="stat"><span class="stat-n">{n_quick}</span><span class="stat-l">Under 30 min</span></div>
+        </div>""", unsafe_allow_html=True)
+
+        if not shown:
+            st.info("Inga recept matchar dina filter. Prova att ändra sökning eller filter.")
+            return
+
+        # ── Featured recipe ─────────────────────────────────────────────────────────
+        if not search and "Alla" in (cats or ["Alla"]):
+            featured = shown[hash(str(len(shown))) % len(shown)]
+            feat_cat = featured.get('category','')
+            feat_cui = featured.get('cuisine','')
+            feat_cat_line = " · ".join(filter(None,[feat_cat,feat_cui]))
+
+            with st.expander("⭐ Utvalt recept", expanded=True):
+                fc1, fc2 = st.columns([1, 1.5])
+                with fc1:
+                    with st.spinner("Ritar illustration…"):
+                        feat_svg = get_illustration(featured)
+                    feat_uri = svg_to_data_uri(feat_svg)
+                    st.markdown(f'<img src="{feat_uri}" style="width:100%;border-radius:12px"/>',
+                               unsafe_allow_html=True)
+                with fc2:
+                    st.markdown(f'<div style="font-size:.65rem;color:#B85C2A;letter-spacing:2px;text-transform:uppercase">{feat_cat_line}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="font-family:Playfair Display,serif;font-size:1.8rem;color:#2C1A0E;line-height:1.2;margin:.3rem 0">{featured.get("title","")}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="color:#7A6252;font-size:.88rem;margin-bottom:.8rem">{featured.get("description","")}</div>', unsafe_allow_html=True)
+                    m = []
+                    if featured.get("prep_time"): m.append(f"⏱ {featured['prep_time']}")
+                    if featured.get("cook_time"): m.append(f"🔥 {featured['cook_time']}")
+                    if featured.get("servings"): m.append(f"👥 {featured['servings']}")
+                    if featured.get("difficulty"): m.append(f"📊 {featured['difficulty']}")
+                    st.markdown(" &nbsp;·&nbsp; ".join(f"<small>{x}</small>" for x in m), unsafe_allow_html=True)
+                    if st.button("Visa fullständigt recept →", key="featured_btn", type="primary"):
+                        st.session_state.sel = featured
+                        st.rerun()
+
+        # ── Recipe grid — illustrationer genereras vid visning ────────────────────
+        # Visa max 12 i taget för att hålla laddningstiden nere
+        page_size = 12
+        page = st.session_state.get("page", 0)
+        page_recipes = shown[page*page_size:(page+1)*page_size]
+        total_pages = (len(shown) - 1) // page_size + 1
+
+        cols = st.columns(3, gap="medium")
+        for i, recipe in enumerate(page_recipes):
+            with cols[i % 3]:
+                # Fallback-SVG direkt — generera bara vid klick
+                fallback = _fallback_svg(recipe.get('title',''), recipe.get('category',''))
+                st.markdown(card_html(recipe, fallback), unsafe_allow_html=True)
+                if st.button("Visa recept", key=f"btn_{page}_{i}_{recipe.get('url','')[-8:]}",
+                            use_container_width=True):
+                    st.session_state.sel = recipe
+                    st.rerun()
+
+        # Pagination
+        if total_pages > 1:
+            st.markdown("---")
+            pcols = st.columns([1,3,1])
+            with pcols[0]:
+                if page > 0 and st.button("← Föregående"):
+                    st.session_state.page = page - 1
+                    st.rerun()
+            with pcols[1]:
+                st.markdown(f'<div style="text-align:center;color:#9B7B5B;font-size:.85rem">Sida {page+1} av {total_pages} &nbsp;·&nbsp; {len(shown)} recept totalt</div>',
+                           unsafe_allow_html=True)
+            with pcols[2]:
+                if page < total_pages - 1 and st.button("Nästa →"):
+                    st.session_state.page = page + 1
+                    st.rerun()
+
+if __name__ == "__main__":
+    if "sel" not in st.session_state:
+        st.session_state.sel = None
+    if "page" not in st.session_state:
+        st.session_state.page = 0
+    main()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LÄGG TILL RECEPT — Instagram URL → Claude extraktion → sparas i JSON
+# ─────────────────────────────────────────────────────────────────────────────
