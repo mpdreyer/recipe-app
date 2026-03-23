@@ -611,7 +611,7 @@ def save_recipe_to_file(recipe: dict) -> bool:
 
 
 def show_add_recipe_page():
-    """Lägg till recept via screenshot eller inklistrad text."""
+    """Lägg till recept via inklistrad bild, uppladdad bild eller inklistrad text."""
     import base64 as _b64, json as _json, re as _re
 
     st.markdown("""
@@ -625,85 +625,81 @@ def show_add_recipe_page():
       </div>
     </div>""", unsafe_allow_html=True)
 
-    tab_img, tab_txt = st.tabs(["📸 Screenshot", "📋 Klistra in text"])
+    tab_paste, tab_upload, tab_txt = st.tabs([
+        "📋 Klistra in bild",
+        "📁 Ladda upp bild",
+        "✍️ Klistra in text",
+    ])
 
-    # ── ALTERNATIV 1: Screenshot ───────────────────────────────────────────────
-    with tab_img:
+    # ────────────────────────────────────────────────────────────────────────────
+    # TAB 1 — Klistra in bild (Cmd+V / paste)
+    # ────────────────────────────────────────────────────────────────────────────
+    with tab_paste:
         st.markdown("""
         <div style='background:#FFF8EE;border-left:4px solid #D4A853;
-                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1.2rem;font-size:.9rem'>
-        <b>iPhone:</b> Sidoknapp + Volym upp → ladda upp bilden nedan
+                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1rem;font-size:.9rem'>
+        <b>iPhone:</b> Ta screenshot → AirDrop till Mac → <b>Cmd+V</b> i rutan nedan<br>
+        <b>Mac:</b> <span style='background:#e0e0e0;padding:.1rem .35rem;border-radius:4px;
+        font-size:.82rem'>Cmd+Shift+4</span> tar screenshot och kopierar automatiskt → <b>Cmd+V</b>
+        </div>""", unsafe_allow_html=True)
+
+        # st.image_input = inbyggd paste-widget i Streamlit 1.37+
+        try:
+            pasted_img = st.image_input(
+                "Klicka här och tryck Cmd+V för att klistra in en bild",
+                key="paste_img"
+            )
+        except AttributeError:
+            # Fallback om äldre Streamlit-version
+            pasted_img = st.file_uploader(
+                "Klistra in eller välj bild (Cmd+V)",
+                type=["jpg","jpeg","png","webp"],
+                key="paste_fallback"
+            )
+
+        if pasted_img is not None:
+            col1, col2, col3 = st.columns([1,2,1])
+            with col2:
+                st.image(pasted_img, use_container_width=True)
+            col1, col2, col3 = st.columns([1,2,1])
+            with col2:
+                if st.button("✨ Extrahera recept", use_container_width=True,
+                             type="primary", key="go_paste"):
+                    _extract_from_image(pasted_img, "paste_import")
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # TAB 2 — Ladda upp bild
+    # ────────────────────────────────────────────────────────────────────────────
+    with tab_upload:
+        st.markdown("""
+        <div style='background:#FFF8EE;border-left:4px solid #D4A853;
+                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1rem;font-size:.9rem'>
+        <b>iPhone:</b> Ta screenshot → välj bilden nedan från Foton-appen
         </div>""", unsafe_allow_html=True)
 
         uploaded = st.file_uploader(
             "Välj screenshot eller foto av receptet",
-            type=["jpg", "jpeg", "png", "webp"],
-            key="img_uploader"
+            type=["jpg","jpeg","png","webp"],
+            key="file_uploader"
         )
-
         if uploaded:
-            col1, col2, col3 = st.columns([1, 2, 1])
+            col1, col2, col3 = st.columns([1,2,1])
             with col2:
                 st.image(uploaded, use_container_width=True)
-            col1, col2, col3 = st.columns([1, 2, 1])
+            col1, col2, col3 = st.columns([1,2,1])
             with col2:
-                go_img = st.button("✨ Extrahera recept", use_container_width=True,
-                                   type="primary", key="btn_img")
+                if st.button("✨ Extrahera recept", use_container_width=True,
+                             type="primary", key="go_upload"):
+                    _extract_from_image(uploaded, "upload_import")
 
-            if go_img:
-                client = get_claude_client()
-                if not client:
-                    st.error("Claude API-nyckel saknas.")
-                    return
-
-                uploaded.seek(0)
-                img_b64 = _b64.standard_b64encode(uploaded.read()).decode()
-                media_type = uploaded.type or "image/jpeg"
-
-                SYSTEM = (
-                    "Du är ett recept-OCR-system. Extrahera receptet från bilden. "
-                    "Returnera BARA giltig JSON utan backticks.\n"
-                    'Om recept: {"is_recipe":true,"title":"...","description":"...", '
-                    '"creator":"","ingredients":["..."],"instructions":"...",'
-                    '"category":"Varmrätt/Förrätt/Dessert/Bakverk/Snacks/Frukost/Tillbehör/Sås/Dryck",'
-                    '"cuisine":"Svensk/Italiensk/Asiatisk/Franskt/Övrigt",'
-                    '"difficulty":"Lätt/Medel/Avancerad","servings":"...","prep_time":"...","cook_time":"...","tags":["..."]}\n'
-                    'Om inget recept: {"is_recipe":false}'
-                )
-
-                with st.spinner("Claude Vision läser bilden..."):
-                    try:
-                        resp = client.messages.create(
-                            model="claude-opus-4-6",
-                            max_tokens=1500,
-                            system=SYSTEM,
-                            messages=[{"role": "user", "content": [
-                                {"type": "image",
-                                 "source": {"type": "base64",
-                                            "media_type": media_type,
-                                            "data": img_b64}},
-                                {"type": "text", "text": "Extrahera receptet. Bara JSON."}
-                            ]}]
-                        )
-                        raw = _re.sub(r'^```(json)?', '',
-                                      resp.content[0].text.strip()).strip().rstrip('`').strip()
-                        recipe = _json.loads(raw)
-                    except Exception as e:
-                        st.error(f"Fel: {e}")
-                        return
-
-                if not recipe.get("is_recipe"):
-                    st.warning("Hittade inget recept i bilden — prova en tydligare screenshot.")
-                    return
-
-                _show_recipe_preview_and_save(recipe, "screenshot_import")
-
-    # ── ALTERNATIV 2: Klistra in text ──────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────────
+    # TAB 3 — Klistra in text
+    # ────────────────────────────────────────────────────────────────────────────
     with tab_txt:
         st.markdown("""
         <div style='background:#FFF8EE;border-left:4px solid #D4A853;
-                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1.2rem;font-size:.9rem'>
-        <b>Instagram:</b> Håll inne på texten → Markera allt → Kopiera → klistra in nedan
+                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1rem;font-size:.9rem'>
+        <b>Instagram:</b> Håll inne på texten → <b>Markera allt</b> → <b>Kopiera</b> → klistra in nedan
         </div>""", unsafe_allow_html=True)
 
         caption = st.text_area(
@@ -711,7 +707,6 @@ def show_add_recipe_page():
             placeholder="Klistra in recepttexten från Instagram här...",
             key="txt_caption"
         )
-
         col_a, col_b = st.columns(2)
         with col_a:
             creator = st.text_input("@kreatör (valfritt):",
@@ -719,20 +714,83 @@ def show_add_recipe_page():
         with col_b:
             ig_url = st.text_input("Instagram-länk (valfritt):",
                                    placeholder="https://instagram.com/p/...", key="txt_url")
-
-        col1, col2, col3 = st.columns([1, 2, 1])
+        col1, col2, col3 = st.columns([1,2,1])
         with col2:
-            go_txt = st.button("✨ Extrahera recept", use_container_width=True,
-                               type="primary", key="btn_txt", disabled=not bool(caption))
+            if st.button("✨ Extrahera recept", use_container_width=True,
+                         type="primary", key="go_txt", disabled=not bool(caption)):
+                url = ig_url.strip().split("?")[0] if ig_url else ""
+                with st.spinner("Claude extraherar receptet..."):
+                    recipe = extract_recipe_from_caption(caption, url, creator)
+                if recipe and recipe.get("is_recipe"):
+                    _show_recipe_preview_and_save(recipe, "text_import")
+                else:
+                    st.warning("Hittade inget recept i texten.")
 
-        if go_txt and caption:
-            url = ig_url.strip().split("?")[0] if ig_url else ""
-            with st.spinner("Claude extraherar receptet..."):
-                recipe = extract_recipe_from_caption(caption, url, creator)
-            if not recipe or not recipe.get("is_recipe"):
-                st.warning("Hittade inget recept i texten.")
-                return
-            _show_recipe_preview_and_save(recipe, "text_import")
+
+def _extract_from_image(img_source, source_key: str):
+    """Gemensam bildextraktion via Claude Vision."""
+    import base64 as _b64, json as _json, re as _re
+
+    client = get_claude_client()
+    if not client:
+        st.error("Claude API-nyckel saknas — kontrollera Streamlit secrets.")
+        return
+
+    try:
+        if hasattr(img_source, 'read'):
+            img_source.seek(0)
+            img_bytes = img_source.read()
+            media_type = getattr(img_source, 'type', 'image/jpeg') or 'image/jpeg'
+        else:
+            # st.image_input returnerar PIL-bild eller bytes
+            import io
+            buf = io.BytesIO()
+            img_source.save(buf, format='PNG')
+            img_bytes = buf.getvalue()
+            media_type = 'image/png'
+    except Exception as e:
+        st.error(f"Kunde inte läsa bilden: {e}")
+        return
+
+    img_b64 = _b64.standard_b64encode(img_bytes).decode()
+
+    SYSTEM = (
+        "Du är ett recept-OCR-system. Extrahera receptet från bilden. "
+        "Returnera BARA giltig JSON utan backticks.\n"
+        'Om recept: {"is_recipe":true,"title":"...","description":"...","creator":"",'
+        '"ingredients":["..."],"instructions":"...","category":"Varmrätt/Förrätt/Dessert/'
+        'Bakverk/Snacks/Frukost/Tillbehör/Sås/Dryck","cuisine":"Svensk/Italiensk/Asiatisk/'
+        'Franskt/Övrigt","difficulty":"Lätt/Medel/Avancerad","servings":"...","prep_time":"...",'
+        '"cook_time":"...","tags":["..."]}\n'
+        'Om inget recept: {"is_recipe":false}'
+    )
+
+    with st.spinner("Claude Vision läser bilden..."):
+        try:
+            resp = client.messages.create(
+                model="claude-opus-4-6",
+                max_tokens=1500,
+                system=SYSTEM,
+                messages=[{"role": "user", "content": [
+                    {"type": "image",
+                     "source": {"type": "base64",
+                                "media_type": media_type,
+                                "data": img_b64}},
+                    {"type": "text", "text": "Extrahera receptet. Bara JSON."}
+                ]}]
+            )
+            raw = _re.sub(r'^```(json)?', '',
+                          resp.content[0].text.strip()).strip().rstrip('`').strip()
+            recipe = _json.loads(raw)
+        except Exception as e:
+            st.error(f"Fel: {e}")
+            return
+
+    if not recipe.get("is_recipe"):
+        st.warning("Hittade inget recept i bilden — prova en tydligare bild.")
+        return
+
+    _show_recipe_preview_and_save(recipe, source_key)
 
 
 def _show_recipe_preview_and_save(recipe: dict, source: str):
