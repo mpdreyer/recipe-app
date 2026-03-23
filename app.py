@@ -497,28 +497,44 @@ def show_detail(recipe: dict, all_recipes: list):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def fetch_instagram_caption(url: str) -> tuple[str, str]:
-    """Hämta caption + creator från Instagram-post via og:description."""
-    import urllib.request, urllib.error, html as html_mod
+    """Hämta caption via Instagram oEmbed API — funkar utan inloggning."""
+    import urllib.request, urllib.error, urllib.parse, json as _json
+    
+    # 1. Försök oEmbed API (public, ingen auth)
+    oembed_url = f"https://api.instagram.com/oembed/?url={urllib.parse.quote(url)}&omitscript=true"
     try:
-        req = urllib.request.Request(url, headers={
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) '
-                          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+        req = urllib.request.Request(oembed_url, headers={
+            'User-Agent': 'Mozilla/5.0 (compatible; RecipeApp/1.0)'
         })
-        with urllib.request.urlopen(req, timeout=10) as r:
-            html = r.read().decode('utf-8', errors='ignore')
-        # og:description
-        import re as _re
-        m = _re.search(r'property="og:description" content="([^"]+)"', html)
-        caption = html_mod.unescape(m.group(1)) if m else ""
-        # creator från "comments - HANDLE "
-        cm = _re.search(r'comments - ([a-zA-Z0-9_.]+) ', caption)
-        creator = cm.group(1) if cm else ""
-        if not creator:
-            cm2 = _re.search(r'"username":"([^"]+)"', html)
-            creator = cm2.group(1) if cm2 else ""
-        return caption, creator
-    except Exception as e:
-        return "", str(e)
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = _json.loads(r.read())
+            title = data.get('title', '')
+            author = data.get('author_name', '')
+            if title:
+                return title, author
+    except Exception:
+        pass
+
+    # 2. Fallback: og:description med mobile user-agent
+    import re as _re, html as _html
+    for ua in [
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1',
+        'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+    ]:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': ua})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                html_raw = r.read().decode('utf-8', errors='ignore')
+            m = _re.search(r'property="og:description" content="([^"]+)"', html_raw)
+            if m:
+                caption = _html.unescape(m.group(1))
+                cm = _re.search(r'comments - ([a-zA-Z0-9_.]+) ', caption)
+                creator = cm.group(1) if cm else ""
+                return caption, creator
+        except Exception:
+            continue
+
+    return "", ""
 
 
 def extract_recipe_from_caption(caption: str, url: str, creator: str) -> dict | None:
@@ -595,8 +611,7 @@ def save_recipe_to_file(recipe: dict) -> bool:
 
 
 def show_add_recipe_page():
-    """Sida för att lägga till recept från Instagram-URL."""
-    import re as _re
+    """Lägg till recept genom att klistra in text från Instagram."""
 
     st.markdown("""
     <div style='text-align:center;padding:2rem 0 1rem'>
@@ -608,125 +623,79 @@ def show_add_recipe_page():
       </div>
     </div>""", unsafe_allow_html=True)
 
-    # ── URL-input ──────────────────────────────────────────────────────────────
-    st.markdown("### 1. Klistra in Instagram-URL")
-    url = st.text_input("", placeholder="https://www.instagram.com/p/ABC123/",
-                        label_visibility="collapsed", key="ig_url_input")
+    st.markdown("""
+    <div style='background:#FFF8EE;border-left:4px solid #D4A853;padding:1rem 1.2rem;border-radius:8px;margin-bottom:1.2rem'>
+    <b>Så här gör du på iPhone:</b><br>
+    1️⃣ Öppna inlägget i Instagram<br>
+    2️⃣ Håll inne på recepttexten → <b>Markera allt</b> → <b>Kopiera</b><br>
+    3️⃣ Klistra in nedan och tryck <b>Extrahera recept</b>
+    </div>
+    """, unsafe_allow_html=True)
+
+    placeholder_txt = "Klistra in recepttexten här..."
+    caption = st.text_area(
+        "Recepttext från Instagram:",
+        height=220,
+        placeholder=placeholder_txt,
+        key="caption_input"
+    )
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        creator = st.text_input("@kreatör (valfritt):", placeholder="t.ex. the_pastaqueen", key="creator_input")
+    with col_b:
+        ig_url = st.text_input("Instagram-länk (valfritt):", placeholder="https://instagram.com/p/...", key="url_input")
 
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
-        fetch_btn = st.button("🔍 Hämta recept", use_container_width=True, type="primary")
+        extract_btn = st.button("✨ Extrahera recept", use_container_width=True, type="primary", disabled=not bool(caption))
 
-    if fetch_btn and url:
-        url = url.strip().split("?")[0]
-        if not _re.match(r'https?://(www\.)?instagram\.com/(p|reel)/', url):
-            st.error("⚠️ Verkar inte vara en giltig Instagram-URL. Försök med t.ex. https://www.instagram.com/p/ABC123/")
-            return
+    if extract_btn and caption:
+        url = ig_url.strip().split("?")[0] if ig_url else ""
 
-        with st.spinner("Hämtar caption från Instagram..."):
-            caption, creator = fetch_instagram_caption(url)
-
-        if not caption:
-            st.error("❌ Kunde inte hämta captionen. Kontrollera att länken är publik.")
-            return
-
-        with st.spinner("Claude extraherar receptet..."):
+        with st.spinner("Claude läser och extraherar receptet..."):
             recipe = extract_recipe_from_caption(caption, url, creator)
 
         if not recipe or not recipe.get("is_recipe"):
-            st.warning("🤔 Hittade inget recept i det här inlägget. Prova ett annat!")
-            with st.expander("Visa caption"):
-                st.text(caption[:500])
+            st.warning("Hittade inget recept i texten — är det ett matrecept?")
             return
 
-        # ── Förhandsgranska ────────────────────────────────────────────────────
         st.markdown("---")
-        st.markdown("### 2. Förhandsgranska")
+        st.success(f"Hittade: **{recipe.get('title', '?')}**")
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown(f"**Titel:** {recipe.get('title','?')}")
-            st.markdown(f"**@kreatör:** {recipe.get('creator','?')}")
-            st.markdown(f"**Kategori:** {recipe.get('category','?')} · {recipe.get('cuisine','?')}")
-            st.markdown(f"**Svårighet:** {recipe.get('difficulty','?')}")
-            st.markdown(f"**Tid:** {recipe.get('prep_time','?')} prep + {recipe.get('cook_time','?')} tillagning")
-        with c2:
-            ings = recipe.get('ingredients', [])
-            st.markdown(f"**{len(ings)} ingredienser:**")
-            for i in ings[:6]:
-                st.markdown(f"• {i}")
-            if len(ings) > 6:
-                st.markdown(f"*…och {len(ings)-6} till*")
+        with st.expander("Förhandsgranska", expanded=True):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown(f"**Kategori:** {recipe.get('category','?')} · {recipe.get('cuisine','?')}")
+                st.markdown(f"**Svårighet:** {recipe.get('difficulty','?')}")
+                st.markdown(f"**Tid:** {recipe.get('prep_time') or '?'} + {recipe.get('cook_time') or '?'}")
+                st.markdown(f"**Portioner:** {recipe.get('servings') or '?'}")
+            with c2:
+                ings = recipe.get("ingredients", [])
+                st.markdown(f"**{len(ings)} ingredienser:**")
+                for i in ings[:7]:
+                    st.markdown(f"• {i}")
+                if len(ings) > 7:
+                    st.markdown(f"*...och {len(ings)-7} till*")
+            if recipe.get("description"):
+                st.markdown(f"*{recipe['description']}*")
 
-        st.markdown(f"**Beskrivning:** {recipe.get('description','')}")
-
-        # Spara-knapp
-        st.markdown("---")
-        st.markdown("### 3. Spara till samlingen")
-
-        # Låt användaren välja om det är Jennys val
-        jenny = st.checkbox("👩 Markera som Jennys val", value=True)
-        recipe['jenny_pick'] = jenny
+        jenny = st.checkbox("Jennys val 👩", value=True)
+        recipe["jenny_pick"] = jenny
+        if creator:
+            recipe["creator"] = creator
+        if url:
+            recipe["url"] = url
 
         col1, col2, col3 = st.columns([1,2,1])
         with col2:
-            save_btn = st.button("💾 Spara recept", use_container_width=True, type="primary")
-
-        if save_btn:
-            saved = save_recipe_to_file(recipe)
-            if saved:
-                st.success(f"✅ **{recipe['title']}** sparad i receptsamlingen!")
-                st.balloons()
-                st.info("💡 Receptet syns direkt i appen — tryck 'Receptsamlingen' i menyn!")
-            else:
-                st.warning("⚠️ Det här receptet finns redan i samlingen (samma URL).")
-
-    # ── iOS Shortcut-sektion ───────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("### 📱 iOS Shortcut — Share direkt från Instagram")
-    st.markdown("""
-    Lägg till denna shortcut på din iPhone — sedan kan du och Jenny trycka
-    **Share → Receptsamlingen** direkt i Instagram!
-    """)
-
-    # Hämta app-URL dynamiskt
-    try:
-        app_url = st.query_params.get("_streamlit_origin", "https://recipe-app-dreyer.streamlit.app")
-    except Exception:
-        app_url = "https://recipe-app-dreyer.streamlit.app"
-
-    shortcut_url = f"{app_url}?add_recipe={{Input}}"
-
-    with st.expander("🔧 Hur man installerar iOS Shortcut (4 steg)", expanded=True):
-        st.markdown(f"""
-**Steg 1 — Öppna Shortcuts-appen** på din iPhone och tryck **+** (ny shortcut)
-
-**Steg 2 — Tryck "Add Action"** och sök efter:
-- Sök: **"Shortcut Input"** → välj **"Receive Input from Share Sheet"**
-  *(på äldre iOS kallas den "Receive" eller finns under "Scripting")*
-- Sätt **Input type** till: **URLs**
-
-**Steg 3 — Lägg till ytterligare en åtgärd** — sök efter:
-- Sök: **"Open URLs"** → välj den
-- I URL-fältet: skriv `{app_url}/?ig_url=` och lägg sedan till **Shortcut Input** (blå variabel)
-
-**Steg 4 — Namnge den** "🍳 Recept" → tryck Done
-
----
-> 💡 **I Instagram:** Tryck på inläggets **···** → **Share** → scrolla ner → **🍳 Recept**
-> Appen öppnas i Safari med receptet redo att hämtas!
-""")
-
-        st.info("📹 Hittar du inte 'Receive Input from Share Sheet'? Sök bara på 'Receive' eller 'Share Sheet' i åtgärdssökningen.")
-
-        st.markdown("---")
-        st.markdown("**🔗 Alternativ — Kopiera länk och öppna direkt:**")
-        st.markdown(f"""
-Om du inte vill använda Shortcuts — gör såhär i Instagram:
-1. Tryck **···** på inlägget → **Copy Link**
-2. Öppna appen: [{app_url}]({app_url})
-3. Gå till **📲 Lägg till recept** → klistra in länken
-""")
+            if st.button("💾 Spara till samlingen", use_container_width=True, type="primary"):
+                saved = save_recipe_to_file(recipe)
+                if saved:
+                    st.success(f"🎉 **{recipe['title']}** sparad!")
+                    st.balloons()
+                else:
+                    st.warning("Receptet finns redan i samlingen.")
 
 
 def main():
