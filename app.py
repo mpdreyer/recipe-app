@@ -697,32 +697,35 @@ def show_add_recipe_page():
 
     shortcut_url = f"{app_url}?add_recipe={{Input}}"
 
-    with st.expander("🔧 Hur man installerar iOS Shortcut (3 steg)", expanded=True):
+    with st.expander("🔧 Hur man installerar iOS Shortcut (4 steg)", expanded=True):
         st.markdown(f"""
-**Steg 1 — Öppna Shortcuts-appen** på din iPhone
+**Steg 1 — Öppna Shortcuts-appen** på din iPhone och tryck **+** (ny shortcut)
 
-**Steg 2 — Skapa ny shortcut** med dessa åtgärder:
-1. `Receive` → **Share Sheet** → Allow **Safari web URLs**
-2. `URL` → `{app_url}?ig_url=` + **Shortcut Input**
-3. `Open URL` i **Safari**
+**Steg 2 — Tryck "Add Action"** och sök efter:
+- Sök: **"Shortcut Input"** → välj **"Receive Input from Share Sheet"**
+  *(på äldre iOS kallas den "Receive" eller finns under "Scripting")*
+- Sätt **Input type** till: **URLs**
 
-**Steg 3 — Namnge den** "Lägg till recept" och lägg till på hemskärmen
+**Steg 3 — Lägg till ytterligare en åtgärd** — sök efter:
+- Sök: **"Open URLs"** → välj den
+- I URL-fältet: skriv `{app_url}/?ig_url=` och lägg sedan till **Shortcut Input** (blå variabel)
+
+**Steg 4 — Namnge den** "🍳 Recept" → tryck Done
 
 ---
-**Eller** — använd denna direktlänk för att installera färdig shortcut:
+> 💡 **I Instagram:** Tryck på inläggets **···** → **Share** → scrolla ner → **🍳 Recept**
+> Appen öppnas i Safari med receptet redo att hämtas!
 """)
 
-        # Generera iCloud Shortcut-länk
-        st.code(f"""
-Shortcut-namn: Lägg till recept
-Åtgärder:
-1. Receive input from Share Sheet (Safari URLs)  
-2. Open URL: {app_url}?ig_url=[Shortcut Input]
-        """, language="text")
+        st.info("📹 Hittar du inte 'Receive Input from Share Sheet'? Sök bara på 'Receive' eller 'Share Sheet' i åtgärdssökningen.")
 
-        st.markdown("""
-> **Tips:** I Instagram — tryck på **···** (tre punkter) på ett inlägg →
-> **Share to** → **Lägg till recept** → appen öppnas med receptet redo att spara!
+        st.markdown("---")
+        st.markdown("**🔗 Alternativ — Kopiera länk och öppna direkt:**")
+        st.markdown(f"""
+Om du inte vill använda Shortcuts — gör såhär i Instagram:
+1. Tryck **···** på inlägget → **Copy Link**
+2. Öppna appen: [{app_url}]({app_url})
+3. Gå till **📲 Lägg till recept** → klistra in länken
 """)
 
 
