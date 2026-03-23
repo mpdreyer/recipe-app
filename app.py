@@ -6,6 +6,11 @@ Kör: streamlit run app.py
 import streamlit as st
 import json, os, re, hashlib
 import anthropic
+try:
+    from supabase import create_client as _supa_create
+    _SUPABASE_OK = True
+except ImportError:
+    _SUPABASE_OK = False
 
 st.set_page_config(page_title="Mattias Receptsamling", page_icon="🍳",
                    layout="wide", initial_sidebar_state="expanded")
@@ -269,11 +274,42 @@ def svg_to_data_uri(svg: str) -> str:
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 @st.cache_data
+@st.cache_resource(show_spinner=False)
+def _get_supa():
+    if not _SUPABASE_OK:
+        return None
+    try:
+        url = st.secrets.get("SUPABASE_URL", "")
+        key = st.secrets.get("SUPABASE_KEY", "")
+        if url and key:
+            return _supa_create(url, key)
+    except Exception:
+        pass
+    return None
+
+
 def load_recipes():
+    # Bas: JSON-filen (förberäknade recept)
     p = os.path.join(os.path.dirname(__file__), "recipes_extracted.json")
-    if not os.path.exists(p):
-        return []
-    return [r for r in json.load(open(p, encoding="utf-8")) if r.get("is_recipe")]
+    base = [r for r in json.load(open(p, encoding="utf-8")) if r.get("is_recipe")] if os.path.exists(p) else []
+
+    # Extra: recept tillagda via appen (sparade i Supabase)
+    try:
+        supa = _get_supa()
+        if supa:
+            rows = supa.table("user_recipes").select("recipe_json").order("created_at").execute()
+            extra = [json.loads(r["recipe_json"]) for r in (rows.data or [])]
+            # Dedup på URL
+            existing = {r.get("url", r.get("title","")) for r in base}
+            for r in extra:
+                key = r.get("url", r.get("title",""))
+                if key not in existing:
+                    base.append(r)
+                    existing.add(key)
+    except Exception:
+        pass
+
+    return base
 
 def filter_recipes(recipes, search, cats, cuisines, diffs, max_time):
     if cats and "Alla" not in cats:
@@ -603,37 +639,59 @@ Om det INTE är ett recept: {"is_recipe":false}"""
 
 
 def save_recipe_to_file(recipe: dict) -> bool:
-    """Spara nytt recept till recipes_extracted.json."""
-    import json as _json, sys as _sys
+    """Spara nytt recept i Supabase (persistent på Streamlit Cloud)."""
+    import sys as _sys
     _sys.path.insert(0, '.')
+
+    # Beräkna näringsvärde
     try:
         from nutrition_engine import calculate_nutrition, NUTRITION_FALLBACKS
-        nutrition = calculate_nutrition(recipe)
-        if nutrition:
-            recipe['nutrition'] = nutrition
-        else:
-            fb = NUTRITION_FALLBACKS.get(recipe.get('category','Varmrätt'),
-                                          NUTRITION_FALLBACKS.get('Varmrätt',{}))
-            recipe['nutrition'] = {**fb, 'calculated': False}
+        nut = calculate_nutrition(recipe)
+        recipe['nutrition'] = nut if nut else {
+            **NUTRITION_FALLBACKS.get(recipe.get('category','Varmrätt'),
+                                       NUTRITION_FALLBACKS.get('Varmrätt',{})),
+            'calculated': False
+        }
     except Exception:
         pass
 
+    recipe['is_recipe'] = True
+
+    # Supabase — primär lagring
+    supa = _get_supa()
+    if supa:
+        try:
+            url_key = recipe.get('url', recipe.get('title', ''))
+            # Dubblettcheck
+            existing = supa.table("user_recipes").select("id").eq("url_key", url_key).execute()
+            if existing.data:
+                return False
+            supa.table("user_recipes").insert({
+                "url_key":     url_key,
+                "title":       recipe.get('title',''),
+                "recipe_json": json.dumps(recipe, ensure_ascii=False)
+            }).execute()
+            # Invalidera cache
+            load_recipes.clear()
+            _get_supa.clear()
+            return True
+        except Exception as e:
+            st.warning(f"Supabase-fel: {e} — försöker spara lokalt")
+
+    # Fallback: lokal fil (funkar bara lokalt, ej på Streamlit Cloud)
     path = "recipes_extracted.json"
     try:
         with open(path, 'r', encoding='utf-8') as f:
-            recipes = _json.load(f)
+            recipes = json.load(f)
+        existing_urls = {r.get('url','') for r in recipes}
+        if recipe.get('url','') in existing_urls:
+            return False
+        recipes.append(recipe)
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(recipes, f, ensure_ascii=False, indent=2)
+        return True
     except Exception:
-        recipes = []
-
-    # Dubblettcheck på URL
-    existing_urls = {r.get('url','') for r in recipes}
-    if recipe.get('url','') in existing_urls:
         return False
-
-    recipes.append(recipe)
-    with open(path, 'w', encoding='utf-8') as f:
-        _json.dump(recipes, f, ensure_ascii=False, indent=2)
-    return True
 
 
 def show_add_recipe_page():
