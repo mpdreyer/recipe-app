@@ -644,18 +644,10 @@ def show_add_recipe_page():
         </div>""", unsafe_allow_html=True)
 
         # st.image_input = inbyggd paste-widget i Streamlit 1.37+
-        try:
-            pasted_img = st.image_input(
-                "Klicka här och tryck Cmd+V för att klistra in en bild",
-                key="paste_img"
-            )
-        except AttributeError:
-            # Fallback om äldre Streamlit-version
-            pasted_img = st.file_uploader(
-                "Klistra in eller välj bild (Cmd+V)",
-                type=["jpg","jpeg","png","webp"],
-                key="paste_fallback"
-            )
+        pasted_img = st.image_input(
+            "Klicka här och klistra in bild från urklipp",
+            key="paste_img"
+        )
 
         if pasted_img is not None:
             col1, col2, col3 = st.columns([1,2,1])
