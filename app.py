@@ -249,7 +249,11 @@ def _fallback_svg(title: str, category: str) -> str:
 </svg>"""
 
 def get_illustration(recipe: dict) -> str:
-    """Hämta eller generera illustration för ett recept."""
+    """Hämta illustration — från JSON om förberäknad, annars generera."""
+    # 1. Förberäknad SVG i JSON — direkt, ingen väntan
+    if recipe.get('svg'):
+        return recipe['svg']
+    # 2. Annars generera (cachas i 7 dagar)
     url = recipe.get('url', recipe.get('title',''))
     title = recipe.get('title', '')
     category = recipe.get('category', '')
