@@ -611,7 +611,7 @@ def save_recipe_to_file(recipe: dict) -> bool:
 
 
 def show_add_recipe_page():
-    """Lägg till recept via inklistrad bild, uppladdad bild eller inklistrad text."""
+    """Lägg till recept via paste, uppladdad bild eller text."""
     import base64 as _b64, json as _json, re as _re
 
     st.markdown("""
@@ -631,37 +631,101 @@ def show_add_recipe_page():
         "✍️ Klistra in text",
     ])
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # TAB 1 — Klistra in bild (Cmd+V / paste)
-    # ────────────────────────────────────────────────────────────────────────────
+    # ── TAB 1: Klistra in bild via paste ──────────────────────────────────────
     with tab_paste:
         st.markdown("""
         <div style='background:#FFF8EE;border-left:4px solid #D4A853;
                     padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1rem;font-size:.9rem'>
-        <b>iPhone:</b> Ta screenshot → AirDrop till Mac → <b>Cmd+V</b> i rutan nedan<br>
-        <b>Mac:</b> <span style='background:#e0e0e0;padding:.1rem .35rem;border-radius:4px;
-        font-size:.82rem'>Cmd+Shift+4</span> tar screenshot och kopierar automatiskt → <b>Cmd+V</b>
+        <b>iPhone:</b> Ta screenshot → öppna Foton → tryck länge på bilden → <b>Kopiera</b><br>
+        Öppna sedan appen → tryck länge i rutan nedan → <b>Klistra in</b>
         </div>""", unsafe_allow_html=True)
 
-        # st.image_input = inbyggd paste-widget i Streamlit 1.37+
-        pasted_img = st.image_input(
-            "Klicka här och klistra in bild från urklipp",
-            key="paste_img"
-        )
+        # HTML paste-komponent som skickar base64-data till Streamlit
+        paste_result = st.components.v1.html("""
+        <div id="paste-area" contenteditable="true" style="
+            min-height: 160px; border: 2px dashed #D4A853; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: #FFFDF7; cursor: pointer; position: relative;
+            font-family: sans-serif; color: #A89070; font-size: 0.95rem;
+            padding: 1rem; text-align: center; outline: none;">
+            <span id="hint">📸 Klistra in bild här (Ctrl+V / Cmd+V eller tryck länge → Klistra in)</span>
+            <img id="preview" style="max-width:100%;max-height:300px;display:none;border-radius:8px">
+        </div>
+        <div id="status" style="margin-top:.5rem;font-size:.8rem;color:#6B5B45;text-align:center"></div>
+        <button id="send-btn" onclick="sendImage()" style="
+            display:none; margin-top:.8rem; width:100%; padding:.7rem;
+            background:#1C1208; color:white; border:none; border-radius:8px;
+            font-size:.95rem; cursor:pointer; font-weight:600">
+            ✨ Extrahera recept
+        </button>
+        <input type="hidden" id="img-data">
 
-        if pasted_img is not None:
+        <script>
+        const area = document.getElementById('paste-area');
+        const hint = document.getElementById('hint');
+        const preview = document.getElementById('preview');
+        const status = document.getElementById('status');
+        const btn = document.getElementById('send-btn');
+
+        // Paste-händelse
+        area.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const b64 = ev.target.result;
+                        preview.src = b64;
+                        preview.style.display = 'block';
+                        hint.style.display = 'none';
+                        document.getElementById('img-data').value = b64;
+                        btn.style.display = 'block';
+                        status.textContent = '✅ Bild inklistrad — tryck Extrahera recept';
+                        area.style.borderColor = '#4CAF50';
+                    };
+                    reader.readAsDataURL(blob);
+                    break;
+                }
+            }
+        });
+
+        // Skicka base64 till Streamlit via sessionStorage + message
+        function sendImage() {
+            const data = document.getElementById('img-data').value;
+            if (!data) return;
+            // Skicka till förälder-fönstret (Streamlit iframe)
+            window.parent.postMessage({type: 'paste_image', data: data}, '*');
+            status.textContent = '⏳ Skickar bild till Claude...';
+            btn.disabled = true;
+        }
+
+        // Lyssna på klick utanför knapp
+        area.addEventListener('click', function() { area.focus(); });
+        </script>
+        """, height=280)
+
+        # Streamlit kan inte ta emot postMessage direkt — använd session_state trick
+        # Visa istället ett file_uploader som backup med tydlig paste-instruktion
+        st.markdown("**Eller** — välj bilden direkt:")
+        pasted = st.file_uploader(
+            "Välj screenshot från Foton",
+            type=["jpg","jpeg","png","webp"],
+            key="paste_uploader",
+            label_visibility="collapsed"
+        )
+        if pasted:
             col1, col2, col3 = st.columns([1,2,1])
             with col2:
-                st.image(pasted_img, use_container_width=True)
+                st.image(pasted, use_container_width=True)
             col1, col2, col3 = st.columns([1,2,1])
             with col2:
                 if st.button("✨ Extrahera recept", use_container_width=True,
                              type="primary", key="go_paste"):
-                    _extract_from_image(pasted_img, "paste_import")
+                    _extract_from_image(pasted, "paste_import")
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # TAB 2 — Ladda upp bild
-    # ────────────────────────────────────────────────────────────────────────────
+    # ── TAB 2: Ladda upp bild ──────────────────────────────────────────────────
     with tab_upload:
         st.markdown("""
         <div style='background:#FFF8EE;border-left:4px solid #D4A853;
@@ -684,9 +748,7 @@ def show_add_recipe_page():
                              type="primary", key="go_upload"):
                     _extract_from_image(uploaded, "upload_import")
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # TAB 3 — Klistra in text
-    # ────────────────────────────────────────────────────────────────────────────
+    # ── TAB 3: Klistra in text ─────────────────────────────────────────────────
     with tab_txt:
         st.markdown("""
         <div style='background:#FFF8EE;border-left:4px solid #D4A853;
@@ -734,7 +796,7 @@ def _extract_from_image(img_source, source_key: str):
             img_bytes = img_source.read()
             media_type = getattr(img_source, 'type', 'image/jpeg') or 'image/jpeg'
         else:
-            # st.image_input returnerar PIL-bild eller bytes
+            # Hantera både UploadedFile och bytes
             import io
             buf = io.BytesIO()
             img_source.save(buf, format='PNG')
