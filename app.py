@@ -157,47 +157,69 @@ def get_claude_client():
     return anthropic.Anthropic(api_key=key)
 
 # ── SVG Illustration generator ────────────────────────────────────────────────
-SVG_SYSTEM = """Du är en matillustratör som ritar SVG-skisser av maträtter. Skapa vackra, stiliserade illustrationer.
+SVG_SYSTEM = """Du ritar matillustrationer som rena SVG. Returnera BARA SVG-kod, inga backticks, inga förklaringar.
 
-TEKNISKA KRAV (följ EXAKT):
-- Öppna med: <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-- Bakgrund: <rect width="400" height="300" fill="#FAF7F2"/>
-- Alltid en tallrik/skål som grund med skugga under
-- Skugga: <ellipse cx="200" cy="272" rx="135" ry="14" fill="#E2D9CE" opacity="0.5"/>
+STRUKTUR (exakt detta format):
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- bakgrund -->
+  <rect width="400" height="300" fill="#FAF7F2"/>
+  <!-- tallriksskugga -->
+  <ellipse cx="200" cy="265" rx="130" ry="12" fill="#D9CFC4" opacity="0.6"/>
+  <!-- tallrik -->
+  <circle cx="200" cy="155" r="118" fill="#FFFFFF" stroke="#E0D5C8" stroke-width="3"/>
+  <circle cx="200" cy="155" r="100" fill="#FFFDF9" stroke="#EDE5DB" stroke-width="1"/>
+  <!-- MATEN HÄR — rita det specifika receptet -->
+  <!-- ångdunst -->
+  <path d="M180 90 Q178 80 180 70" stroke="#CCC" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M200 88 Q198 78 200 68" stroke="#CCC" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M220 90 Q218 80 220 70" stroke="#CCC" stroke-width="1.5" fill="none" opacity="0.4"/>
+</svg>
 
-FÄRGPALETT (bara dessa):
-#FAF7F2 bakgrund | #FFFFFF tallrik | #E8DDD3 tallrik-kant/skugga
-#C4622D röd/tomat/paprika | #D4A853 guld/pasta/ost/smör | #6B8C5A grönt/örter/sallad
-#8B4513 brun/kött/choklad/kaffe | #F5DEB3 ljus/bröd/deg/kex | #2C1A0E mörkbrun/kontur
-#FF6B6B ljusröd | #FFD700 gul/ägg | #87CEEB ljusblå/skaldjur | #DEB887 beige/potatis
+FÄRGER per råvara:
+pasta/gnocchi = #D4A853 (gyllengul)  |  kött/biff = #8B3A2A (mörkrött-brunt)
+sås/tomat = #C4622D (röd)            |  ost/parmesan = #F5DEB3 (ljusbeige)
+grönsaker = #5A8A47 (mörkgrönt)      |  sallad/örter = #7AAD5A (ljusgrönt)
+fisk/skaldjur = #6EB5C0 (blågrön)   |  ägg = #FFD166 (gul)
+bröd/deg = #C8A870 (brungul)         |  choklad = #5C3317 (mörk)
+grädde/sås = #F9EDD8 (krämvit)       |  citron = #FFE066 (citrongul)
+lax = #E8845A (laxrosa)              |  räkor = #F4A67A (ljusorange)
 
-DESIGNREGLER:
-- Rita 5-8 igenkänningsbara matelement ovanpå tallriken
-- Använd enkla former: cirklar, ellipser, rektanglar med rundade hörn, enkla paths
-- Lägg till detaljer: ånglinjer (böjda paths, opacity 0.3), garneringar
-- Variera storleken på element för djup
-- INGA externa resurser, INGEN JavaScript, INGA fonter
-- Returnera BARA ren SVG-kod utan ```-backticks eller förklaringar"""
+ILLUSTRATIONSPRINCIPER:
+1. Rita det TYPISKA för rätten — för pasta: nudeltofsar/rör, för sallad: gröna blad, för biff: brun oval
+2. Lägg mat naturligt PÅ tallriken — inte utanför
+3. Använd 4-7 element, variera storlek för djup (bakre element lite mindre)
+4. Gör sås som en oval pool, kött som rundade organiska former, pasta som böjda rör
+5. Lägg en garnering (örtskvast, citronskiva, eller parmesanflaga) i förgrunden
+6. INGA text, INGA externa resurser, INGEN JavaScript"""
 
-@st.cache_data(show_spinner=False, ttl=86400*30)  # Cache 30 dagar
+@st.cache_data(show_spinner=False, ttl=86400*7)  # Cache 7 dagar
 def generate_illustration(recipe_url: str, title: str, category: str, 
-                          ingredients_str: str, tags_str: str) -> str:
+                          ingredients_str: str, tags_str: str, cache_v: int = 3) -> str:
     """Generera SVG-illustration med Claude Haiku. Cachas per recept-URL."""
     client = get_claude_client()
     if not client:
         return _fallback_svg(title, category)
     
-    prompt = f"""Rita en vacker matillustration av: {title}
+    # Bygg en konkret prompt med visuella instruktioner
+    ing_list = [i.strip() for i in ingredients_str.split(',') if i.strip()][:5]
+    main_ings = ', '.join(ing_list)
+    
+    prompt = f"""Rita en matillustration av: {title}
+Huvudingredienser att VISA VISUELLT: {main_ings}
 Kategori: {category}
-Nyckelingredienser: {ingredients_str}
-Taggar: {tags_str}
 
-Skapa en aptitlig och igenkännbar SVG-skiss. Rita det som är mest karakteristiskt för rätten."""
+Instruktioner:
+- Placera maten centrerat på tallriken
+- Rita de viktigaste ingredienserna igenkännbart: {main_ings}
+- Välj rätt former: pasta=böjda rör/tofsar, kött=oval brun form, fisk=avlång, sallad=ojämna gröna blad
+- Lägg till en sås eller buljong som bakgrund PÅ tallriken
+- Avsluta med en liten garnering (örtkvast, citronskiva eller riven ost i hörnet)
+- Rita BARA SVG, inga förklaringar"""
 
     try:
         resp = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=2500,
+            model="claude-sonnet-4-6",
+            max_tokens=3000,
             system=SVG_SYSTEM,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -233,7 +255,7 @@ def get_illustration(recipe: dict) -> str:
     category = recipe.get('category', '')
     ings = ', '.join((recipe.get('ingredients') or [])[:6])
     tags = ', '.join((recipe.get('tags') or [])[:4])
-    return generate_illustration(url, title, category, ings, tags)
+    return generate_illustration(url, title, category, ings, tags, cache_v=3)
 
 def svg_to_data_uri(svg: str) -> str:
     """Konvertera SVG till data URI för img-taggar."""
