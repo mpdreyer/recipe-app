@@ -709,10 +709,11 @@ def show_add_recipe_page():
       </div>
     </div>""", unsafe_allow_html=True)
 
-    tab_paste, tab_upload, tab_txt = st.tabs([
+    tab_paste, tab_upload, tab_txt, tab_manual = st.tabs([
         "📋 Klistra in bild",
         "📁 Ladda upp bild",
         "✍️ Klistra in text",
+        "📝 Fyll i manuellt",
     ])
 
     # ── TAB 1: Klistra in bild via paste ──────────────────────────────────────
@@ -863,6 +864,63 @@ def show_add_recipe_page():
                     _show_recipe_preview_and_save(recipe, "text_import")
                 else:
                     st.warning("Hittade inget recept i texten.")
+
+    # ── TAB 4: Manuellt formulär (ingen API krävs) ────────────────────────────
+    with tab_manual:
+        st.markdown("""
+        <div style='background:#FFF8EE;border-left:4px solid #D4A853;
+                    padding:.8rem 1.1rem;border-radius:8px;margin:.5rem 0 1rem;font-size:.9rem'>
+        Fyll i receptet direkt — ingen AI behövs. Perfekt när extraktionen krånglar.
+        </div>""", unsafe_allow_html=True)
+
+        m_title   = st.text_input("Receptnamn *", placeholder="t.ex. Spaghetti Carbonara", key="m_title")
+        m_desc    = st.text_input("Kort beskrivning", placeholder="Klassisk italiensk pasta", key="m_desc")
+        m_creator = st.text_input("@kreatör", placeholder="the_pastaqueen", key="m_creator")
+        m_url     = st.text_input("Instagram-länk", placeholder="https://instagram.com/p/...", key="m_url")
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            m_cat  = st.selectbox("Kategori", ["Varmrätt","Förrätt","Dessert","Bakverk","Snacks","Frukost","Tillbehör","Sås","Dryck"], key="m_cat")
+            m_diff = st.selectbox("Svårighet", ["Lätt","Medel","Avancerad"], key="m_diff")
+            m_serv = st.text_input("Portioner", placeholder="4 portioner", key="m_serv")
+        with col_b:
+            m_cui  = st.selectbox("Kök", ["Svensk","Italiensk","Asiatisk","Franskt","Övrigt"], key="m_cui")
+            m_prep = st.text_input("Förberedelsetid", placeholder="15 min", key="m_prep")
+            m_cook = st.text_input("Tillagningstid", placeholder="30 min", key="m_cook")
+
+        m_ings = st.text_area("Ingredienser (en per rad) *", height=150,
+                               placeholder="400g spaghetti\n200g guanciale\n4 äggulor", key="m_ings")
+        m_inst = st.text_area("Tillagning *", height=150,
+                               placeholder="Koka pastan al dente...", key="m_inst")
+        jenny_m = st.checkbox("Jennys val 👩", value=True, key="m_jenny")
+
+        col1, col2, col3 = st.columns([1,2,1])
+        with col2:
+            if st.button("💾 Spara recept", use_container_width=True, type="primary",
+                         key="btn_manual", disabled=not bool(m_title and m_ings and m_inst)):
+                recipe = {
+                    "is_recipe":    True,
+                    "title":        m_title.strip(),
+                    "description":  m_desc.strip(),
+                    "creator":      m_creator.strip(),
+                    "url":          m_url.strip().split("?")[0] if m_url else "",
+                    "category":     m_cat,
+                    "cuisine":      m_cui,
+                    "difficulty":   m_diff,
+                    "servings":     m_serv or "4 portioner",
+                    "prep_time":    m_prep or "",
+                    "cook_time":    m_cook or "",
+                    "ingredients":  [i.strip() for i in m_ings.strip().splitlines() if i.strip()],
+                    "instructions": m_inst.strip(),
+                    "tags":         [],
+                    "jenny_pick":   jenny_m,
+                    "added_by":     "manual",
+                }
+                if save_recipe_to_file(recipe):
+                    st.success(f"🎉 **{recipe['title']}** sparad!")
+                    st.balloons()
+                else:
+                    st.warning("Receptet finns redan i samlingen.")
 
 
 def _extract_from_image(img_source, source_key: str):
