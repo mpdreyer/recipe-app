@@ -273,6 +273,7 @@ def svg_to_data_uri(svg: str) -> str:
     return f"data:image/svg+xml;base64,{encoded}"
 
 # ── Data ──────────────────────────────────────────────────────────────────────
+@st.cache_data
 @st.cache_resource(show_spinner=False)
 def _get_supa():
     if not _SUPABASE_OK:
