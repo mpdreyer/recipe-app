@@ -922,7 +922,7 @@
       "Cajun-kryddning",
       "Riven parmesan",
       "Hackad persilja",
-      "Ranch: 1/2 cup gräddfil, 1/4 cup majonnäs, 1 chipotle i adobo (hackad), 1/2 tsk vitlökspulver, 1/2 tsk lökpulver, 1 tsk färsk dill, 1/4 tsk salt"
+      "Ranch: 1,2 dl gräddfil, 0,6 dl majonnäs, 1 chipotle i adobo (hackad), 1/2 tsk vitlökspulver, 1/2 tsk lökpulver, 1 tsk färsk dill, 1/4 tsk salt"
     ],
     "instructions": "1. Ugn 200°C. 2. Skär potatis i tjocka skivor, snitt i rutnätsmönster åt båda håll. 3. Skär i kvarter och jämna till. 4. Täck i cajun-smör. 5. Rosta 30 min. 6. Blanda ranch-ingredienser. 7. Grilla sista minuterna tills fin yta. 8. Garnera med persilja och parmesan. Servera med chipotle ranch.",
     "category": "Snacks",
@@ -11307,12 +11307,19 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Bacon Wrapped Chicken Lollipops",
+    "title": "Baconlindade kycklingklubbor",
     "description": "Sparat av Jenny från @foodwithbearhandss Grill-samling.",
     "ingredients": [
-      "14 Drumsticks, 14 Strips thin Bacon, 6 Tbsp BBQ Rub, 14 Toothpicks, 1/2 Cup Honey, 1/2 Cup BBQ Sauce, 4 Tbsp Sriracha, 4 Tbsp Apple Cider Vinegar"
+      "14 kycklingklubbor",
+      "14 skivor tunn bacon",
+      "6 msk BBQ-rub",
+      "14 tandpetare",
+      "1,2 dl honung",
+      "1,2 dl BBQ-sås",
+      "4 msk sriracha",
+      "4 msk äppelcidervinäger"
     ],
-    "instructions": "4 Tbsp Apple Cider Vinegar\nPrep: 1. Cut around bone near knuckle and push meat down to create lollipop shape. 2. Wrap bacon around meat. 3. Season with BBQ rub. 4. Grill 350F indirect heat 45-60 min. 5. Mix honey, BBQ sauce, sriracha, ACV for glaze. 6. Brush glaze last 15 min. Cook to 175F internal.",
+    "instructions": "Förberedelse: 1. Skär runt benet nära knogen och tryck ner köttet för att skapa en klubbform. 2. Linda bacon runt köttet. 3. Krydda med BBQ-rub. 4. Grilla på 175°C med indirekt värme i 45–60 min. 5. Blanda honung, BBQ-sås, sriracha och äppelcidervinäger till en glaze. 6. Pensla med glaze de sista 15 minuterna. Tillaga tills innertemperaturen når 80°C.",
     "category": "Varmrätt",
     "cuisine": "Övrigt",
     "difficulty": "Lätt",
@@ -11349,13 +11356,13 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Maple Bourbon Brisket with Burnt Ends",
+    "title": "Lönnsirap- och bourbonbrisket med burnt ends",
     "description": "Sparat av Jenny från @sweetbabyrayscaterings Grill-samling.",
     "ingredients": [
-      "Maple Bourbon Glaze: 1/2 cup maple syrup, 1/4 cup bourbon, 2 tbsp butter, 1 tbsp Worcestershire",
-      "Burnt Ends: separated point, 1/2 cup BBQ sauce, 2 tbsp brown sugar"
+      "Lönnsirap-bourbonglaze: 1,2 dl lönnsirap, 60 ml bourbon, 2 msk smör, 1 msk Worcestershiresås",
+      "Burnt ends: separerad point-del, 1,2 dl BBQ-sås, 2 msk brunt socker"
     ],
-    "instructions": "ershire\nBurnt Ends: separated point, 1/2 cup BBQ sauce, 2 tbsp brown sugar\nINSTRUCTIONS: 1. Apply mustard and rub. 2. Smoke at 225F 12-16h to 165F. 3. Wrap in butcher paper, continue to 205F. 4. Rest 1-2h. 5. Separate point for burnt ends. 6. Cube, toss in glaze and BBQ sauce. 7. Smoke another hour.",
+    "instructions": "1. Bred på senap och gnid in kryddorna. 2. Rök vid 110°C i 12–16 timmar tills innertemperaturen når 75°C. 3. Slå in i slaktarpapper och fortsätt röka tills innertemperaturen når 95°C. 4. Låt vila 1–2 timmar. 5. Separera point-delen för burnt ends. 6. Tärna köttet och vänd i glazen och BBQ-såsen. 7. Rök ytterligare en timme.",
     "category": "Varmrätt",
     "cuisine": "Dryck",
     "difficulty": "Avancerad",
@@ -11392,12 +11399,18 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Butter Garlic Shrimp",
+    "title": "Vitlöksräkor i smör",
     "description": "Sparat av Jenny från @seafoodishhs Skaldjur-samling.",
     "ingredients": [
-      "1. 16 ounces shrimp - Jumbo peeled deveined"
+      "450 g jätteräkor, skalade och rengjorda",
+      "6 msk smör",
+      "6-8 vitlöksklyftor, finhackade",
+      "1/2 tsk chiliflingor",
+      "Salt och peppar efter smak",
+      "Färsk persilja",
+      "Citronsaft"
     ],
-    "instructions": "1. 16 ounces shrimp - Jumbo peeled deveined 2. 6 tablespoons butter 3. 6-8 garlic cloves minced 4. 1/2 teaspoon red pepper flakes 5. Salt and pepper to taste 6. Fresh parsley 7. Lemon juice",
+    "instructions": "1. 450 g jätteräkor, skalade och rengjorda. 2. 6 msk smör. 3. 6-8 vitlöksklyftor, finhackade. 4. 1/2 tsk chiliflingor. 5. Salt och peppar efter smak. 6. Färsk persilja. 7. Citronsaft.",
     "category": "Förrätt",
     "cuisine": "Övrigt",
     "difficulty": "Medel",
@@ -11434,12 +11447,18 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Roasted Grape & Brie Crostini",
+    "title": "Rostade druvor & briecrostini",
     "description": "Sparat av Jenny från @ambitiouskitchens Mat-samling.",
     "ingredients": [
-      "1 baguette sliced, 1 cup red grapes, 8oz brie sliced, 2 tbsp olive oil, 1 tbsp honey, fresh thyme, black pepper"
+      "1 baguette, skivad",
+      "2,5 dl röda druvor",
+      "225 g brie, skivad",
+      "2 msk olivolja",
+      "1 msk honung",
+      "färsk timjan",
+      "svartpeppar"
     ],
-    "instructions": "1. Toss grapes with olive oil, roast 400F 20 min until caramelized. 2. Toast baguette slices. 3. Top with brie. 4. Add roasted grapes. 5. Drizzle honey, add thyme and pepper.",
+    "instructions": "1. Blanda druvorna med olivolja och rosta i ugnen på 200°C i 20 minuter tills de karamelliserats. 2. Rosta baguetteskivorna. 3. Lägg på brieskivor. 4. Toppa med rostade druvor. 5. Ringla över honung och avsluta med timjan och peppar.",
     "category": "Varmrätt",
     "cuisine": "Övrigt",
     "difficulty": "Medel",
@@ -11476,12 +11495,21 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Spicy Tequila Lime Shrimp",
+    "title": "Kryddig tequila- och limeräkor",
     "description": "Sparat av Jenny från @cookwithchays Mat-samling.",
     "ingredients": [
-      "1 lb extra large shrimp cleaned, 3 tbsp butter, 4 cloves garlic minced, 2 tbsp tequila, juice of 2 limes, 1 tsp cumin, 1 tsp chili powder, 1/2 tsp cayenne, salt, fresh cilantro"
+      "450 g extra stora räkor, rensade",
+      "3 msk smör",
+      "4 vitlöksklyftor, finhackade",
+      "2 msk tequila",
+      "juice av 2 limefrukter",
+      "1 tsk spiskummin",
+      "1 tsk chilipulver",
+      "1/2 tsk cayennepeppar",
+      "salt",
+      "färsk koriander"
     ],
-    "instructions": "1. Season shrimp with cumin, chili, cayenne, salt. 2. Melt butter in skillet, add garlic 1 min. 3. Add shrimp cook 2 min per side. 4. Pour in tequila, cook 30 sec. 5. Squeeze lime juice. 6. Garnish cilantro. Serve with rice or tacos.",
+    "instructions": "1. Krydda räkorna med spiskummin, chilipulver, cayennepeppar och salt. 2. Smält smöret i en stekpanna, tillsätt vitlöken och stek i 1 minut. 3. Lägg i räkorna och stek 2 minuter per sida. 4. Häll i tequilan och låt koka i 30 sekunder. 5. Pressa över limejuicen. 6. Garnera med färsk koriander. Servera med ris eller tacos.",
     "category": "Varmrätt",
     "cuisine": "Övrigt",
     "difficulty": "Medel",
@@ -11518,12 +11546,20 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Crispy Roasted Garlic Honey Butter Hasselback Potatoes",
+    "title": "Krispiga hasselbackspotatisar med rostat vitlök, honung och smör",
     "description": "Sparat av Jenny från @starinfinitefoods Mat-samling.",
     "ingredients": [
-      "4 large potatoes, 4 tbsp butter melted, 3 cloves garlic minced, 2 tbsp honey, 1 tsp smoked paprika, fresh rosemary, salt, pepper, parmesan"
+      "4 stora potatisar",
+      "4 msk smör, smält",
+      "3 vitlöksklyftor, finhackade",
+      "2 msk honung",
+      "1 tsk rökt paprikapulver",
+      "färsk rosmarin",
+      "salt",
+      "peppar",
+      "parmesan"
     ],
-    "instructions": "1. Slice potatoes hasselback style. 2. Mix butter, garlic, honey, paprika. 3. Brush into slits. 4. Roast 400F 50-60 min, brushing every 20 min. 5. Finish with parmesan last 10 min. Serve with sour cream.",
+    "instructions": "1. Skär potatisarna i hasselbacksstil. 2. Blanda smör, vitlök, honung och paprikapulver. 3. Pensla blandningen i skårorna. 4. Rosta i ugnen på 200°C i 50–60 minuter, pensla var 20:e minut. 5. Avsluta med parmesan de sista 10 minuterna. Servera med gräddfil.",
     "category": "Varmrätt",
     "cuisine": "Övrigt",
     "difficulty": "Avancerad",
@@ -11560,12 +11596,20 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Shrimp Scampi Appetizer",
+    "title": "Räkor Scampi Förrätt",
     "description": "Sparat av Jenny från @withwendyandshannons Mat-samling.",
     "ingredients": [
-      "1 lb shrimp peeled, 4 tbsp butter, 4 cloves garlic, 1/2 cup white wine, 1/2 cup chicken broth, juice of 1 lemon, red pepper flakes, parsley, crusty bread"
+      "450 g räkor, skalade",
+      "4 msk smör",
+      "4 klyftor vitlök",
+      "1,2 dl vitt vin",
+      "1,2 dl kycklingbuljong",
+      "juice av 1 citron",
+      "chiliflingor",
+      "persilja",
+      "surdegsbröd"
     ],
-    "instructions": "1. Melt butter, sauté garlic 1 min. 2. Add shrimp, cook 2 min per side. Remove. 3. Add wine and broth, reduce by half. 4. Return shrimp, add lemon juice and pepper flakes. 5. Toss with parsley. Serve with bread.",
+    "instructions": "1. Smält smöret, fräs vitlöken i 1 minut. 2. Tillsätt räkorna, stek 2 minuter per sida. Ta upp dem. 3. Tillsätt vin och buljong, reducera till hälften. 4. Lägg tillbaka räkorna, tillsätt citronjuice och chiliflingor. 5. Blanda med persilja. Servera med bröd.",
     "category": "Varmrätt",
     "cuisine": "Övrigt",
     "difficulty": "Medel",
@@ -12064,12 +12108,21 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Creamy Chicken and Mushroom Pasta",
+    "title": "Krämig pasta med kyckling och svamp",
     "description": "Sparat av Jenny från @bbcfoods Mat-samling.",
     "ingredients": [
-      "400g penne, 4 chicken thighs diced, 300g mushrooms sliced, 3 garlic cloves, 200ml double cream, 100ml chicken stock, parmesan, thyme, olive oil, salt & pepper"
+      "400 g penne",
+      "4 kycklinglår, tärnade",
+      "300 g svamp, skivad",
+      "3 vitlöksklyftor",
+      "200 ml vispgrädde",
+      "100 ml kycklingbuljong",
+      "parmesan",
+      "timjan",
+      "olivolja",
+      "salt & peppar"
     ],
-    "instructions": "1. Brown chicken in oil 5-6 min. Remove. 2. Fry mushrooms and garlic 4 min. 3. Return chicken, add cream and stock. Simmer 10 min. 4. Cook pasta. 5. Toss together. Top with parmesan and thyme.",
+    "instructions": "1. Bryn kycklingen i olja 5–6 min. Ta upp. 2. Stek svamp och vitlök 4 min. 3. Lägg tillbaka kycklingen, tillsätt grädde och buljong. Låt sjuda 10 min. 4. Koka pastan. 5. Blanda ihop alltsammans. Toppa med parmesan och timjan.",
     "category": "Varmrätt",
     "cuisine": "Italiensk",
     "difficulty": "Lätt",
@@ -12405,11 +12458,11 @@
     "description": "Sparat av Jenny från @my_cocktail_bibles Drinkar-samling.",
     "ingredients": [
       "Tequila - 50ml",
-      "Fresh Lime Juice - 25ml",
+      "Färskpressad limejuice - 25ml",
       "Cointreau - 25ml",
-      "Agave Syrup - 10ml"
+      "Agavesirap - 10ml"
     ],
-    "instructions": "Devil's Margarita\n▪️Tequila - 50ml\n▪️Fresh Lime Juice - 25ml\n▪️Cointreau - 25ml\n▪️Agave Syrup - 10ml\n▪️Tajin rim\n▪️Chili slices\nMethod: Shake all with ice. Double strain into rocks glass over ice. Tajin rim. Garnish with lime wheel and chili.",
+    "instructions": "Devil's Margarita\n▪️Tequila - 50ml\n▪️Färskpressad limejuice - 25ml\n▪️Cointreau - 25ml\n▪️Agavesirap - 10ml\n▪️Tajin-kant\n▪️Chiliskivor\nMetod: Skaka allt med is. Dubbelstila i ett rocksglas över is. Tajin-kant. Garnera med limeskiva och chili.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12449,9 +12502,12 @@
     "title": "Wet P***y Shot",
     "description": "Sparat av Jenny från @my_cocktail_bibles Drinkar-samling.",
     "ingredients": [
-      "▪️Vodka - 15ml"
+      "▪️Vodka - 15ml",
+      "▪️Persiklikör - 15ml",
+      "▪️Baileys - 15ml",
+      "▪️Vispgrädde"
     ],
-    "instructions": "Wet P***y Shot\n▪️Vodka - 15ml\n▪️Peach Liqueur - 15ml\n▪️Baileys - 15ml\n▪️Whipped cream\nMethod: Layer vodka and peach schnapps in shot glass. Float Baileys on top. Crown with whipped cream. Drink in one.",
+    "instructions": "Wet P***y Shot\n▪️Vodka - 15ml\n▪️Persiklikör - 15ml\n▪️Baileys - 15ml\n▪️Vispgrädde\nMetod: Häll vodka och persiklikör i ett shotglas i lager. Flyta Baileys ovanpå. Toppa med vispgrädde. Drick i ett svep.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12532,15 +12588,15 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Aperol Spritz Classic",
+    "title": "Aperol Spritz Klassisk",
     "description": "Sparat av Jenny från @gutsydreamers Drinkar-samling.",
     "ingredients": [
-      "▪️Prosecco 3 parts",
-      "▪️Aperol 2 parts",
-      "▪️Splash of soda 50ml",
-      "▪️Orange slice"
+      "▪️Prosecco 3 delar",
+      "▪️Aperol 2 delar",
+      "▪️En skvätt sodavatten 50 ml",
+      "▪️Apelsinskiva"
     ],
-    "instructions": "Aperol Spritz Classic\n▪️Prosecco 3 parts\n▪️Aperol 2 parts\n▪️Splash of soda\n▪️Orange slice and ice\nBuild in wine glass over large ice cube. Prosecco first, then Aperol, top with soda. Garnish with orange slice.",
+    "instructions": "Aperol Spritz Klassisk\n▪️Prosecco 3 delar\n▪️Aperol 2 delar\n▪️En skvätt sodavatten\n▪️Apelsinskiva och is\nBygg drinken i ett vinglas med en stor isbit. Häll i prosecco först, sedan Aperol, fyll på med sodavatten. Garnera med en apelsinskiva.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12577,15 +12633,15 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Strawberry Basil Smash",
+    "title": "Jordgubb- och basilikasmasch",
     "description": "Sparat av Jenny från @thecocktailcanvass Drinkar-samling.",
     "ingredients": [
-      "Gin - 50ml",
-      "Lemon juice - 30ml",
-      "Simple syrup - 20ml",
-      "Strawberries 80g"
+      "Gin - 50 ml",
+      "Citronsaft - 30 ml",
+      "Sockerlag - 20 ml",
+      "Jordgubbar - 80 g"
     ],
-    "instructions": "Strawberry Basil Smash\n50ml gin, 30ml lemon juice, 20ml simple syrup, 5-6 fresh strawberries, 4 basil leaves, soda water\nMuddle strawberries and basil. Add gin, lemon juice, syrup and ice. Shake vigorously. Double strain into glass with ice. Top with soda. Garnish with basil and strawberry.",
+    "instructions": "Jordgubb- och basilikasmasch\n50 ml gin, 30 ml citronsaft, 20 ml sockerlag, 5–6 färska jordgubbar, 4 basilikablad, sodavatten\nMosa jordgubbar och basilika. Tillsätt gin, citronsaft, sockerlag och is. Skaka kraftigt. Dubbelstila ner i ett glas med is. Toppa med sodavatten. Garnera med basilika och jordgubbe.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12625,12 +12681,12 @@
     "title": "Espresso Martini",
     "description": "Sparat av Jenny från @drinks_by_saras Drinkar-samling.",
     "ingredients": [
-      "▪️Vodka - 50ml",
-      "▪️Kahlúa - 20ml",
-      "▪️Fresh espresso - 30ml",
-      "▪️Simple syrup - 10ml"
+      "▪️Vodka - 50 ml",
+      "▪️Kahlúa - 20 ml",
+      "▪️Färsk espresso - 30 ml",
+      "▪️Sockerlag - 10 ml"
     ],
-    "instructions": "Espresso Martini\n▪️Vodka - 50ml\n▪️Kahlúa - 20ml\n▪️Fresh espresso - 30ml (cooled)\n▪️Simple syrup - 10ml\n▪️3 coffee beans to garnish\nMethod: Add all ingredients to shaker with ice. Shake hard for 15 seconds to get the frothy top. Double strain into chilled martini glass. Garnish with 3 coffee beans.",
+    "instructions": "Espresso Martini\n▪️Vodka - 50 ml\n▪️Kahlúa - 20 ml\n▪️Färsk espresso - 30 ml (avsvalnad)\n▪️Sockerlag - 10 ml\n▪️3 kaffebönor till garnering\nMetod: Häll alla ingredienser i en shaker med is. Skaka kraftigt i 15 sekunder för att få ett skummigt topplager. Dubbelstila i ett kylt martiniglas. Garnera med 3 kaffebönor.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12670,11 +12726,11 @@
     "title": "Hugo Spritz",
     "description": "Sparat av Jenny från @topbarincs Drinkar-samling.",
     "ingredients": [
-      "St-Germain elderflower liqueur - 50ml",
-      "Prosecco 3 parts",
-      "Sparkling water 50ml"
+      "St-Germain fläderblomslikör - 50 ml",
+      "Prosecco 3 delar",
+      "Kolsyrat vatten 50 ml"
     ],
-    "instructions": "Hugo Spritz\n50ml St-Germain elderflower liqueur, 100ml Prosecco, splash sparkling water, fresh mint, lime slices, ice\nFill wine glass with ice. Add St-Germain. Top with Prosecco and sparkling water. Gently stir. Garnish with fresh mint and lime.",
+    "instructions": "Hugo Spritz\n50 ml St-Germain fläderblomslikör, 100 ml Prosecco, en skvätt kolsyrat vatten, färsk mynta, limeskivor, is\nFyll ett vinglas med is. Tillsätt St-Germain. Fyll på med Prosecco och kolsyrat vatten. Rör om försiktigt. Garnera med färsk mynta och lime.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12711,14 +12767,14 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Classic Whisky Sour",
+    "title": "Klassisk Whisky Sour",
     "description": "Sparat av Jenny från @claudioconnoisseurs Drinkar-samling.",
     "ingredients": [
       "Bourbon - 60ml",
-      "Fresh lemon juice - 30ml",
-      "Simple syrup - 15ml"
+      "Färskpressad citronjuice - 30ml",
+      "Sockerlag - 15ml"
     ],
-    "instructions": "Classic Whisky Sour\n▪️Bourbon - 60ml\n▪️Fresh lemon juice - 30ml\n▪️Simple syrup - 15ml\n▪️Egg white - 1 (optional)\n▪️Angostura bitters\nDry shake egg white first. Add rest + ice, shake hard. Strain into rocks glass over ice. Dash bitters on foam.",
+    "instructions": "Klassisk Whisky Sour\n▪️Bourbon - 60ml\n▪️Färskpressad citronjuice - 30ml\n▪️Sockerlag - 15ml\n▪️Äggvita - 1 (valfritt)\n▪️Angostura bitter\nTorrskaka äggvitan först. Tillsätt resten + is, skaka kraftigt. Sila över i ett whiskyglas med is. Droppa bitter på skummet.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12758,11 +12814,12 @@
     "title": "Negroni",
     "description": "Sparat av Jenny från @koktailklubbens Drinkar-samling.",
     "ingredients": [
-      "▪️Gin - 30ml",
-      "▪️Campari - 30ml",
-      "▪️Sweet Vermouth - 30ml"
+      "▪️Gin - 30 ml",
+      "▪️Campari - 30 ml",
+      "▪️Söt vermut - 30 ml",
+      "▪️Apelsinskal"
     ],
-    "instructions": "Negroni\n▪️Gin - 30ml\n▪️Campari - 30ml\n▪️Sweet Vermouth - 30ml\n▪️Orange peel\nMethod: Stir all ingredients with ice until cold and diluted (~30 sec). Strain into rocks glass over single large ice cube. Express orange peel over drink and use as garnish.",
+    "instructions": "Negroni\n▪️Gin - 30 ml\n▪️Campari - 30 ml\n▪️Söt vermut - 30 ml\n▪️Apelsinskal\nMetod: Rör alla ingredienser med is tills drinken är kall och utspädd (~30 sek). Sila över i ett tumblerglas med en stor isbit. Pressa apelsinskalet över drinken och använd som garnering.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12799,16 +12856,16 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Frozen Mango Margarita",
+    "title": "Fryst Mango Margarita",
     "description": "Sparat av Jenny från @drinkrecept.ses Drinkar-samling.",
     "ingredients": [
-      "Frozen mango 400g",
+      "Fryst mango 400g",
       "Tequila - 100ml",
       "Cointreau - 60ml",
-      "Lime juice 60ml",
-      "Agave syrup 30ml"
+      "Limejuice 60ml",
+      "Agavesirap 30ml"
     ],
-    "instructions": "Frozen Mango Margarita\n400g frozen mango, 100ml tequila, 60ml cointreau, juice of 2 limes, 2 tbsp agave syrup, salt rim\nBlend mango, tequila, cointreau, lime juice and agave with handful ice until smooth. Rim glasses with salt. Pour and garnish with lime and mango slice.",
+    "instructions": "Fryst Mango Margarita\n400g fryst mango, 100ml tequila, 60ml cointreau, juice från 2 limefrukter, 2 msk agavesirap, salt till glasens kant.\nMixa mango, tequila, cointreau, limejuice och agavesirap med en handfull is tills det är slät. Fukta glasens kanter med salt. Häll upp och garnera med lime- och mangoskivor.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -12849,11 +12906,11 @@
     "description": "Sparat av Jenny från @bartenderguides Drinkar-samling.",
     "ingredients": [
       "Tequila Blanco - 50ml",
-      "Fresh Grapefruit Juice - 60ml",
-      "Fresh Lime Juice - 15ml",
-      "Agave Syrup - 10ml"
+      "Färskpressad grapefruktjuice - 60ml",
+      "Färskpressad limejuice - 15ml",
+      "Agavesirap - 10ml"
     ],
-    "instructions": "Paloma\n▪️Tequila Blanco - 50ml\n▪️Fresh Grapefruit Juice - 60ml\n▪️Fresh Lime Juice - 15ml\n▪️Agave Syrup - 10ml\n▪️Pinch of salt\n▪️Grapefruit soda to top\nSalt rim. Add tequila, grapefruit juice, lime and agave to ice-filled glass. Top with grapefruit soda. Garnish grapefruit wedge.",
+    "instructions": "Paloma\n▪️Tequila Blanco - 50ml\n▪️Färskpressad grapefruktjuice - 60ml\n▪️Färskpressad limejuice - 15ml\n▪️Agavesirap - 10ml\n▪️En nypa salt\n▪️Grapefruktläsk till toppen\nSaltrand på glaset. Tillsätt tequila, grapefruktjuice, lime och agavesirap i ett isfyllt glas. Toppa med grapefruktläsk. Garnera med en grapefruktklyfta.",
     "category": "Dryck",
     "cuisine": "Dryck",
     "difficulty": "Medel",
@@ -13017,12 +13074,19 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Creamy Chicken Dinner",
+    "title": "Krämig kycklingmiddag",
     "description": "Sparat av Jenny från @bbcfoods Alla Inlägg-samling.",
     "ingredients": [
-      "400g pasta, 4 chicken thighs diced, 300g mushrooms, 3 garlic cloves, 200ml cream, 100ml stock, parmesan, thyme"
+      "400 g pasta",
+      "4 kycklinglår, tärnade",
+      "300 g svamp",
+      "3 vitlöksklyftor",
+      "200 ml grädde",
+      "100 ml buljong",
+      "parmesan",
+      "timjan"
     ],
-    "instructions": "Creamy Chicken Dinner\n400g pasta, 4 chicken thighs diced, 300g mushrooms, 3 garlic cloves, 200ml cream, 100ml stock, parmesan, thyme\nBrown chicken, fry mushrooms and garlic, add cream and stock, simmer. Toss with pasta.",
+    "instructions": "Bryn kycklingen, stek svamp och vitlök, tillsätt grädde och buljong och låt sjuda. Blanda med pastan.",
     "category": "Varmrätt",
     "cuisine": "Italiensk",
     "difficulty": "Medel",
@@ -13059,12 +13123,17 @@
     "jenny_pick": true,
     "added_by": "jenny_dreyer",
     "is_recipe": true,
-    "title": "Egg and Spinach Muffins",
+    "title": "Ägg- och spenatmuffins",
     "description": "Sparat av Jenny från @goodfoodeverydays Alla Inlägg-samling.",
     "ingredients": [
-      "6 eggs, 100g spinach, 50g feta, cherry tomatoes, garlic, salt & pepper"
+      "6 ägg",
+      "100 g spenat",
+      "50 g fetaost",
+      "körsbärstomater",
+      "vitlök",
+      "salt & peppar"
     ],
-    "instructions": "Egg and Spinach Muffins\n6 eggs, 100g spinach, 50g feta, cherry tomatoes, garlic, salt & pepper\nMix all, bake in muffin tins 180°C 18 min.",
+    "instructions": "Ägg- och spenatmuffins: Blanda 6 ägg, 100 g spenat, 50 g fetaost, körsbärstomater, vitlök, salt och peppar. Häll smeten i muffinsformar och grädda i ugnen på 180°C i 18 minuter.",
     "category": "Varmrätt",
     "cuisine": "Övrigt",
     "difficulty": "Medel",
