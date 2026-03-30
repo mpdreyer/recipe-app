@@ -671,9 +671,6 @@ def save_recipe_to_file(recipe: dict) -> bool:
                 "title":       recipe.get('title',''),
                 "recipe_json": json.dumps(recipe, ensure_ascii=False)
             }).execute()
-            # Invalidera cache
-            load_recipes.clear()
-            _get_supa.clear()
             return True
         except Exception as e:
             st.warning(f"Supabase-fel: {e} — försöker spara lokalt")
@@ -808,7 +805,10 @@ def show_add_recipe_page():
             with col2:
                 if st.button("✨ Extrahera recept", use_container_width=True,
                              type="primary", key="go_paste"):
+                    st.session_state.pop("extracted_recipe_paste_import", None)
                     _extract_from_image(pasted, "paste_import")
+        if "extracted_recipe_paste_import" in st.session_state:
+            _show_recipe_preview_and_save(st.session_state["extracted_recipe_paste_import"], "paste_import")
 
     # ── TAB 2: Ladda upp bild ──────────────────────────────────────────────────
     with tab_upload:
@@ -831,7 +831,10 @@ def show_add_recipe_page():
             with col2:
                 if st.button("✨ Extrahera recept", use_container_width=True,
                              type="primary", key="go_upload"):
+                    st.session_state.pop("extracted_recipe_upload_import", None)
                     _extract_from_image(uploaded, "upload_import")
+        if "extracted_recipe_upload_import" in st.session_state:
+            _show_recipe_preview_and_save(st.session_state["extracted_recipe_upload_import"], "upload_import")
 
     # ── TAB 3: Klistra in text ─────────────────────────────────────────────────
     with tab_txt:
@@ -861,9 +864,12 @@ def show_add_recipe_page():
                 with st.spinner("Claude extraherar receptet..."):
                     recipe = extract_recipe_from_caption(caption, url, creator)
                 if recipe and recipe.get("is_recipe"):
-                    _show_recipe_preview_and_save(recipe, "text_import")
+                    st.session_state["extracted_recipe_text_import"] = recipe
+                    st.rerun()
                 else:
                     st.warning("Hittade inget recept i texten.")
+        if "extracted_recipe_text_import" in st.session_state:
+            _show_recipe_preview_and_save(st.session_state["extracted_recipe_text_import"], "text_import")
 
     # ── TAB 4: Manuellt formulär (ingen API krävs) ────────────────────────────
     with tab_manual:
@@ -986,7 +992,8 @@ def _extract_from_image(img_source, source_key: str):
         st.warning("Hittade inget recept i bilden — prova en tydligare bild.")
         return
 
-    _show_recipe_preview_and_save(recipe, source_key)
+    st.session_state[f"extracted_recipe_{source_key}"] = recipe
+    st.rerun()
 
 
 def _show_recipe_preview_and_save(recipe: dict, source: str):
@@ -1023,25 +1030,31 @@ def _show_recipe_preview_and_save(recipe: dict, source: str):
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("💾 Spara till samlingen", use_container_width=True,
-                     type="primary", key=f"save_{source}"):
-            try:
-                import sys as _sys
-                _sys.path.insert(0, ".")
-                from nutrition_engine import calculate_nutrition, NUTRITION_FALLBACKS
-                nut = calculate_nutrition(recipe)
-                recipe["nutrition"] = nut if nut else {
-                    **NUTRITION_FALLBACKS.get(recipe.get("category", "Varmrätt"),
-                                              NUTRITION_FALLBACKS.get("Varmrätt", {})),
-                    "calculated": False
-                }
-            except Exception:
-                pass
-            if save_recipe_to_file(recipe):
-                st.success(f"🎉 **{recipe['title']}** sparad!")
-                st.balloons()
-            else:
-                st.warning("Receptet finns redan i samlingen.")
+        clicked = st.button("💾 Spara till samlingen", use_container_width=True,
+                            type="primary", key=f"save_{source}")
+
+    if clicked:
+        try:
+            from nutrition_engine import calculate_nutrition, NUTRITION_FALLBACKS
+            nut = calculate_nutrition(recipe)
+            recipe["nutrition"] = nut if nut else {
+                **NUTRITION_FALLBACKS.get(recipe.get("category", "Varmrätt"),
+                                          NUTRITION_FALLBACKS.get("Varmrätt", {})),
+                "calculated": False
+            }
+        except Exception:
+            pass
+        try:
+            saved = save_recipe_to_file(recipe)
+        except Exception as e:
+            st.error(f"Fel vid sparning: {e}")
+            saved = False
+        if saved:
+            st.session_state.pop(f"extracted_recipe_{source}", None)
+            st.success(f"🎉 **{recipe.get('title','')}** sparad i samlingen!")
+            st.balloons()
+        else:
+            st.warning("Receptet finns redan i samlingen.")
 
 
 def main():
