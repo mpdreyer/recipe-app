@@ -661,7 +661,7 @@ def save_recipe_to_file(recipe: dict) -> bool:
     supa = _get_supa()
     if supa:
         try:
-            url_key = recipe.get('url', recipe.get('title', ''))
+            url_key = recipe.get('url') or recipe.get('title', '')
             # Dubblettcheck
             existing = supa.table("user_recipes").select("id").eq("url_key", url_key).execute()
             if existing.data:
