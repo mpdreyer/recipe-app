@@ -300,9 +300,9 @@ def load_recipes():
             rows = supa.table("user_recipes").select("recipe_json").order("created_at").execute()
             extra = [json.loads(r["recipe_json"]) for r in (rows.data or [])]
             # Dedup på URL
-            existing = {r.get("url", r.get("title","")) for r in base}
+            existing = {r.get("url") or r.get("title","") for r in base}
             for r in extra:
-                key = r.get("url", r.get("title",""))
+                key = r.get("url") or r.get("title","")
                 if key not in existing:
                     base.append(r)
                     existing.add(key)
